@@ -1,4 +1,4 @@
-import { Field, Value, Client, Collection } from ".";
+import { Field, Value, Client, Collection, Model } from ".";
 import { flatObject, isPlainObject } from "./utils";
 
 export default class QueryBuilder
@@ -154,38 +154,58 @@ export default class QueryBuilder
 		return this.get();
 	}
 
-	get()
+	async get()
 	{
-		return this.client.get();
+		return this.#hydrate(
+			await this.client.get()
+		);
 	}
 
 	async first()
 	{
-		const body = await this
-			.page( null )
-			.limit( 1 )
-			.get();
+		const result = await this.page( 1 ).limit( 1 ).get();
 
-		const data = "$pluckMultiple" in this.model
-			? this.model.$pluckMultiple( body )
-			: body;
+		if( result instanceof Model )
+		{
+			return result;
+		}
 
-		return new Collection( data, this.model ).first();
+		if( result instanceof Collection )
+		{
+			return result.first();
+		}
 	}
 
 	async find( value )
 	{
-		const body = await this
+		const result = await this
 			.resource( this.model.resource + "/" + value )
 			.page( null )
 			.limit( null )
 			.get();
 
-		const data = "$pluckSingle" in this.model
-			? this.model.$pluckSingle( body )
-			: body;
+		if( result instanceof Model )
+		{
+			return result;
+		}
 
-		return new this.model( data );
+		if( result instanceof Collection )
+		{
+			return result.first();
+		}
+	}
+
+	#hydrate( responseBody )
+	{
+		const single = this.model.$pluckSingle( responseBody );
+		const multi = this.model.$pluckMultiple( responseBody );
+
+		if( multi )
+		{
+			return new Collection( multi, this.model );
+		}
+		
+		return new this.model( single );
 	}
 
 	resource( resource )
