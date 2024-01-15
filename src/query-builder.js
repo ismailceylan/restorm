@@ -10,7 +10,7 @@ export default class QueryBuilder
 	currentPage = 1;
 	currentLimit = 10;
 	additionalParams = {}
-	temportaryResource = null;
+	temporaryResource = null;
 
 	constructor( Model )
 	{
@@ -179,17 +179,17 @@ export default class QueryBuilder
 
 	resource( resource )
 	{
-		this.temportaryResource = resource;
+		this.temporaryResource = resource;
 		return this;
 	}
 
 	getResource()
 	{
-		if( this.temportaryResource )
+		if( this.temporaryResource )
 		{
-			const rs = this.temportaryResource;
+			const rs = this.temporaryResource;
 			
-			this.temportaryResource = null;
+			this.temporaryResource = null;
 			
 			return rs;
 		}
