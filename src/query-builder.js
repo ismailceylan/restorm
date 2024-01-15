@@ -1,4 +1,4 @@
-import { Field, Value, Client } from ".";
+import { Field, Value, Client, Collection } from ".";
 import { flatObject, isPlainObject } from "./utils";
 
 export default class QueryBuilder
@@ -159,13 +159,18 @@ export default class QueryBuilder
 		return this.client.get();
 	}
 
-	first()
+	async first()
 	{
-		return this
-			.resource( this.model.resource + "/1" )
+		const body = await this
 			.page( null )
-			.limit( null )
+			.limit( 1 )
 			.get();
+
+		const data = "$pluckMultiple" in this.model
+			? this.model.$pluckMultiple( body )
+			: body;
+
+		return new Collection( data, this.model ).first();
 	}
 
 	async find( value )
