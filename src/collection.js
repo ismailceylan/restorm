@@ -1,16 +1,16 @@
 export default class Collection
 {
-	data = [];
+	#data = [];
 
 	constructor( data, Model )
 	{
-		this.data = data.map( item =>
+		this.#data = data.map( item =>
 			new Model( item )
 		);
 	}
 
 	first()
 	{
-		return this.data[ 0 ];
+		return this.#data[ 0 ];
 	}
 }
