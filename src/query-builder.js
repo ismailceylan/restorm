@@ -168,13 +168,19 @@ export default class QueryBuilder
 			.get();
 	}
 
-	find( value )
+	async find( value )
 	{
-		return this
+		const body = await this
 			.resource( this.model.resource + "/" + value )
 			.page( null )
 			.limit( null )
 			.get();
+
+		const data = "$pluckSingle" in this.model
+			? this.model.$pluckSingle( body )
+			: body;
+
+		return new this.model( data );
 	}
 
 	resource( resource )
