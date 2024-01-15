@@ -84,6 +84,16 @@ export default class Model
 		return this.createBuilder().resource( ...arguments );
 	}
 
+	static $pluckMultiple( responseBody )
+	{
+		return responseBody;
+	}
+	
+	static $pluckSingle( responseBody )
+	{
+		return responseBody;
+	}
+
 	save()
 	{
 
