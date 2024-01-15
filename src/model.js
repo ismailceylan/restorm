@@ -11,8 +11,7 @@ export default class Model
 
 	constructor( properties = {})
 	{
-		this.isDirty = true;
-		this.modified = { ...this.modified, ...properties }
+		this.original = { ...this.original, ...properties }
 	}
 
 	static select()
