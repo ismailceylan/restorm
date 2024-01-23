@@ -17,6 +17,11 @@ export default class Collection
 		return this.#data[ 0 ];
 	}
 
+	last()
+	{
+		return this.#data[ this.size - 1 ];
+	}
+
 	get( index )
 	{
 		return this.#data[ index ];
