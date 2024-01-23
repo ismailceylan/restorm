@@ -202,7 +202,11 @@ export default class QueryBuilder
 
 		if( multi )
 		{
-			return new Collection( multi, this.model );
+			return new Collection(
+				multi.map( item =>
+					new this.model( item )
+				)
+			);
 		}
 		
 		return new this.model( single );

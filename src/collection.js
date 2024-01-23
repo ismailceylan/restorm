@@ -2,11 +2,10 @@ export default class Collection
 {
 	#data = [];
 
-	constructor( data, Model )
+	constructor( data )
 	{
-		this.#data = data.map( item =>
-			new Model( item )
-		);
+		this.#data = data;
+	}
 	}
 
 	first()
