@@ -115,6 +115,11 @@ export default class Model
 	
 		return builder;
 	}
+
+	has( key )
+	{
+		return key in this.original;
+	}
 }
 
 Object.setPrototypeOf( Model.prototype, new Proxy( Model.prototype,
