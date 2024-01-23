@@ -59,6 +59,11 @@ export default class Model
 		return this.createBuilder().when( ...arguments );
 	}
 
+	static scope( field, value )
+	{
+		return this.createBuilder().scope( ...arguments );
+	}
+
 	static all()
 	{
 		return this.createBuilder().all( ...arguments );
