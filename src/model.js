@@ -94,11 +94,6 @@ export default class Model
 		return responseBody;
 	}
 
-	save()
-	{
-
-	}
-
 	static createBuilder()
 	{
 		const builder = new QueryBuilder( this );
@@ -116,6 +111,11 @@ export default class Model
 		return builder;
 	}
 
+	save()
+	{
+
+	}
+
 	has( key )
 	{
 		return key in this.original;
@@ -124,14 +124,14 @@ export default class Model
 
 Object.setPrototypeOf( Model.prototype, new Proxy( Model.prototype,
 {
-	set( _target, key, val, rec )
+	set( Model, key, val, instance )
 	{
-		rec.modified[ key ] = val;
-		return rec.isDirty = true;
+		instance.modified[ key ] = val;
+		return instance.isDirty = true;
 	},
 
-	get( _target, key, rec )
+	get( Model, key, instance )
 	{
-		return rec.original[ key ];
+		return instance.original[ key ];
 	}
 }));
