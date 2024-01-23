@@ -6,6 +6,10 @@ export default class Collection
 	{
 		this.#data = data;
 	}
+
+	get size()
+	{
+		return this.#data.length;
 	}
 
 	first()
