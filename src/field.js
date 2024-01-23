@@ -16,8 +16,6 @@ export default class Field
 
 	toString()
 	{
-		return this.field
-			.map( field => `[${ field }]` )
-			.join( "" );
+		return "[" + this.field.join( "." ) + "]";
 	}
 }
