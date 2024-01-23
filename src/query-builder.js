@@ -97,10 +97,11 @@ export default class QueryBuilder
 		flatObject( payload ).forEach( item =>
 		{
 			const keys = item.key.split( "." );
+			const name = keys.shift() + keys
+				.map( key => `[${ key }]` )
+				.join( "" );
 
-			this.additionalParams[
-				keys.shift() + keys.map( key => `[${ key }]` ).join( "" )
-			] = item.value;
+			this.additionalParams[ name ] = item.value;
 		});
 
 		return this;
@@ -260,7 +261,7 @@ export default class QueryBuilder
 	#build( name, stack )
 	{
 		const map = {}
-	
+
 		if( stack instanceof Value )
 		{
 			stack = [ stack ];
@@ -277,7 +278,7 @@ export default class QueryBuilder
 				map[ name ] = item.toString();
 			}
 		});
-	
+
 		return map;
 	}
 }
