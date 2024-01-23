@@ -18,6 +18,34 @@ export default class Collection
 		return this.#data[ index ];
 	}
 
+	forEach()
+	{
+		this.#data.forEach( ...arguments );
+		return this;
+	}
+
+	map()
+	{
+		return new Collection(
+			this.#data.map( ...arguments )
+		);
+	}
+
+	filter()
+	{
+		return new Collection(
+			this.#data.filter( ...arguments )
+		);
+	}
+	
+	reduce()
+	{
+		return new Collection(
+			this.#data.reduce( ...arguments )
+		);
+	}
+
+
 	[ Symbol.iterator ]()
 	{
 		let index = 0;
