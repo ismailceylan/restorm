@@ -210,10 +210,9 @@ export default class QueryBuilder
 
 	#hydrate( responseBody )
 	{
-		const single = this.model.$pluckSingle( responseBody );
-		const multi = this.model.$pluckMultiple( responseBody );
+		let multi;
 
-		if( multi )
+		if( multi = this.model.$pluckMultiple( responseBody ))
 		{
 			return new Collection(
 				multi.map( item =>
@@ -221,8 +220,10 @@ export default class QueryBuilder
 				)
 			);
 		}
-		
-		return new this.model( single );
+
+		return new this.model(
+			this.model.$pluckSingle( responseBody )
+		);
 	}
 
 	resource( resource )
