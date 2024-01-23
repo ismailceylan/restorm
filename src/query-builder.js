@@ -252,6 +252,7 @@ export default class QueryBuilder
 			...this.#build( "filter", this.wheres ),
 			...this.#build( "sort", this.orderBys ),
 			...this.#build( "with", this.withs ),
+			...this.#build( "field", this.selects ),
 			...this.#build( "scope", this.scopes ),
 			...this.additionalParams,
 			limit: this.currentLimit,
