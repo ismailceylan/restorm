@@ -134,7 +134,11 @@ export default class QueryBuilder
 		{
 			if( args[ 0 ] instanceof Array )
 			{
-				this.selects.push( new Value( args[ 0 ]));
+				this.selects.push(
+				[
+					new Field( "" ),
+					new Value( args[ 0 ])
+				]);
 			}
 			else if( isPlainObject( args[ 0 ]))
 			{
