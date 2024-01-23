@@ -1,3 +1,5 @@
+import { Model } from ".";
+
 export default class Collection
 {
 	#data = [];
@@ -54,6 +56,18 @@ export default class Collection
 		);
 	}
 
+	pluck( field )
+	{
+		const stack = [];
+
+		this.#data.forEach( item =>
+		{
+			(( item instanceof Model && item.has( field )) || item.hasOwnProperty( field )) &&
+				stack.push( item[ field ])
+		});
+
+		return new Collection( stack );
+	}
 
 	[ Symbol.iterator ]()
 	{
