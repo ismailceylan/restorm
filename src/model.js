@@ -131,8 +131,18 @@ Object.setPrototypeOf( Model.prototype, new Proxy( Model.prototype,
 {
 	set( Model, key, val, instance )
 	{
-		instance.modified[ key ] = val;
-		return instance.isDirty = true;
+		if( instance.original[ key ] === val )
+		{
+			delete instance.modified[ key ];
+			instance.isDirty = Object.keys( instance.modified ).length > 0;
+		}
+		else
+		{
+			instance.modified[ key ] = val;
+			instance.isDirty = true;
+		}
+
+		return true;
 	},
 
 	get( Model, key, instance )
