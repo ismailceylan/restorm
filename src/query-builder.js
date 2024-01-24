@@ -17,6 +17,11 @@ export default class QueryBuilder
 	{
 		this.model = Model;
 		this.client = new Client( this );
+		
+		if( Model.itemsPerPage )
+		{
+			this.currentLimit = Model.itemsPerPage;
+		}
 	}
 
 	where( field, value )
