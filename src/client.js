@@ -19,6 +19,7 @@ export default class Client
 	{
 		this.abortController.abort();
 		this.abortController = new AbortController();
+		this.query.trigger( "canceled" );
 	}
 
 	async get()
