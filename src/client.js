@@ -2,6 +2,8 @@ import Axios from "axios";
 
 export default class Client
 {
+	abortController = new AbortController;
+
 	constructor( query )
 	{
 		this.query = query;
@@ -13,10 +15,17 @@ export default class Client
 		});
 	}
 
+	cancel()
+	{
+		this.abortController.abort();
+		this.abortController = new AbortController();
+	}
+
 	async get()
 	{
 		const response = await this.http.get( this.query.getResource(),
 		{
+			signal: this.abortController.signal,
 			params: this.query.compile()
 		});
 

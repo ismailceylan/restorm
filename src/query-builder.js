@@ -212,6 +212,11 @@ export default class QueryBuilder
 		}
 	}
 
+	cancel()
+	{
+		this.client.cancel();
+	}
+
 	#hydrate( responseBody )
 	{
 		let multi;
