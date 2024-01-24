@@ -1,4 +1,5 @@
 import { QueryBuilder } from ".";
+import { camelToDash } from "./utils";
 
 export default class Model
 {
@@ -89,6 +90,11 @@ export default class Model
 		return this.createBuilder().resource( ...arguments );
 	}
 
+	static on( evtName, args = [])
+	{
+		return this.createBuilder().on( ...arguments );
+	}
+
 	static $pluckMultiple( responseBody )
 	{
 		return responseBody;
@@ -110,8 +116,19 @@ export default class Model
 				this[ name ] instanceof Function
 			)
 			.forEach( name =>
-				builder[ name ] = this[ name ]
-			);
+			{
+				if( name.slice( 0, 2 ) == "on" )
+				{
+					builder.on(
+						camelToDash( name.slice( 2 )),
+						this[ name ]
+					);
+				}
+				else
+				{
+					builder[ name ] = this[ name ];
+				}
+			});
 	
 		return builder;
 	}

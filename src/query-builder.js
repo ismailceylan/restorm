@@ -12,6 +12,7 @@ export default class QueryBuilder
 	currentLimit = 10;
 	additionalParams = {}
 	temporaryResource = null;
+	events = {}
 
 	constructor( Model )
 	{
@@ -222,22 +223,26 @@ export default class QueryBuilder
 		this.client.cancel();
 	}
 
-	#hydrate( responseBody )
+	on( evtName, handler )
 	{
-		let multi;
-
-		if( multi = this.model.$pluckMultiple( responseBody ))
+		if( ! ( evtName in this.events ))
 		{
-			return new Collection(
-				multi.map( item =>
-					new this.model( item )
-				)
-			);
+			this.events[ evtName ] = [];
 		}
 
-		return new this.model(
-			this.model.$pluckSingle( responseBody )
-		);
+		this.events[ evtName ] = handler;
+
+		return this;
+	}
+
+	trigger( evtName, args = [])
+	{
+		if( evtName in this.events )
+		{
+			this.events[ evtName ]( ...args );
+		}
+
+		return this;
 	}
 
 	resource( resource )
@@ -272,6 +277,24 @@ export default class QueryBuilder
 			limit: this.currentLimit,
 			page: this.currentPage,
 		}
+	}
+
+	#hydrate( responseBody )
+	{
+		let multi;
+
+		if( multi = this.model.$pluckMultiple( responseBody ))
+		{
+			return new Collection(
+				multi.map( item =>
+					new this.model( item )
+				)
+			);
+		}
+
+		return new this.model(
+			this.model.$pluckSingle( responseBody )
+		);
 	}
 
 	#build( name, stack )
