@@ -108,29 +108,55 @@ export default class Model
 	static createBuilder()
 	{
 		const builder = new QueryBuilder( this );
-	
-		Object
-			.getOwnPropertyNames( this )
-			.filter( name =>
-				! [ "name", "prototype", "constructor", "length" ].includes( name ) &&
-				this[ name ] instanceof Function
-			)
-			.forEach( name =>
+		const methods = this.getInheritedMethods();
+
+		Object.keys( methods ).forEach( name =>
+		{
+			if( name.slice( 0, 2 ) == "on" )
 			{
-				if( name.slice( 0, 2 ) == "on" )
-				{
-					builder.on(
-						camelToDash( name.slice( 2 )),
-						this[ name ]
-					);
-				}
-				else
-				{
-					builder[ name ] = this[ name ];
-				}
-			});
+				builder.on(
+					camelToDash( name.slice( 2 )),
+					methods[ name ]
+				);
+			}
+			else
+			{
+				builder[ name ] = methods[ name ];
+			}
+		});
 	
 		return builder;
+	}
+
+	static getInheritedMethods()
+	{
+		const staticMethods = {}
+		const ignored = [ "name", "prototype", "constructor", "length" ];
+		let current = this;
+
+		do
+		{
+			if( current === Model )
+			{
+				break;
+			}
+
+			Object
+				.getOwnPropertyNames( current )
+				.filter( name =>
+					! ignored.includes( name ) && this[ name ] instanceof Function
+				)
+				.forEach( name =>
+				{
+					if( ! ( name in staticMethods ))
+					{
+						staticMethods[ name ] = current[ name ];
+					}
+				});
+		}
+		while( current = Object.getPrototypeOf( current ));
+
+		return staticMethods;
 	}
 
 	save()
