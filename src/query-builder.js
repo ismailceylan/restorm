@@ -172,16 +172,21 @@ export default class QueryBuilder
 		return this;
 	}
 
-	all()
+	$all()
 	{
-		return this.get();
+		return this.$get();
 	}
 
-	async get()
+	async $get()
 	{
 		return this.#hydrate(
 			await this.client.get()
 		);
+	}
+
+	get()
+	{
+		return this.client.get();
 	}
 
 	async first()
@@ -279,9 +284,10 @@ export default class QueryBuilder
 		}
 	}
 
-	#hydrate( responseBody )
+	#hydrate( response )
 	{
 		let multi;
+		const responseBody = response.body;
 
 		if( multi = this.model.$pluckMultiple( responseBody ))
 		{

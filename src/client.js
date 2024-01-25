@@ -22,14 +22,12 @@ export default class Client
 		this.query.trigger( "canceled" );
 	}
 
-	async get()
+	get()
 	{
-		const response = await this.http.get( this.query.getResource(),
+		return this.http.get( this.query.getResource(),
 		{
 			signal: this.abortController.signal,
 			params: this.query.compile()
 		});
-
-		return response.data;
 	}
 }
