@@ -293,21 +293,25 @@ export default class QueryBuilder
 
 	#hydrate( response )
 	{
-		let multi;
-		const responseBody = response.body;
+		const data = this.#stripBody( response.data );
 
-		if( multi = this.model.$pluckMultiple( responseBody ))
+		if( isPlainObject( data ))
+		{
+			return new this.model( data );
+		}
+		else if( Array.isArray( data ))
 		{
 			return new Collection(
-				multi.map( item =>
+				data.map( item =>
 					new this.model( item )
 				)
 			);
 		}
+	}
 
-		return new this.model(
-			this.model.$pluckSingle( responseBody )
-		);
+	#stripBody( responseBody )
+	{
+		return this.model.$pluck( responseBody );
 	}
 
 	#build( name, stack )
