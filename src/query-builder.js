@@ -8,7 +8,7 @@ export default class QueryBuilder
 	withs = [];
 	selects = [];
 	scopes = [];
-	currentPage = 1;
+	currentPage = null;
 	currentLimit = 10;
 	additionalParams = {}
 	temporaryResource = null;
