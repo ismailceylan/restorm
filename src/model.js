@@ -105,16 +105,11 @@ export default class Model
 		return this.createBuilder().on( ...arguments );
 	}
 
-	static $pluckMultiple( responseBody )
+	static $pluck( responseBody )
 	{
 		return responseBody;
 	}
 	
-	static $pluckSingle( responseBody )
-	{
-		return responseBody;
-	}
-
 	static createBuilder()
 	{
 		const builder = new QueryBuilder( this );
