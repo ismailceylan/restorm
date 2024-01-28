@@ -75,6 +75,16 @@ export default class Model
 		return this.createBuilder().get( ...arguments );
 	}
 
+	static $get()
+	{
+		return this.createBuilder().$get( ...arguments );
+	}
+
+	static $$get()
+	{
+		return this.createBuilder().$$get( ...arguments );
+	}
+
 	static first()
 	{
 		return this.createBuilder().first( ...arguments );

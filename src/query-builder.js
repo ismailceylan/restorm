@@ -172,21 +172,28 @@ export default class QueryBuilder
 		return this;
 	}
 
-	$all()
+	$$get()
 	{
-		return this.$get();
+		return this.client.get();
 	}
 
 	async $get()
+	{
+		return this.#stripBody(
+			( await this.client.get()).data
+		);
+	}
+
+	async get()
 	{
 		return this.#hydrate(
 			await this.client.get()
 		);
 	}
 
-	get()
+	all()
 	{
-		return this.client.get();
+		return this.get();
 	}
 
 	async first()
