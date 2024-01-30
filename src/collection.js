@@ -4,7 +4,7 @@ export default class Collection
 {
 	#data = [];
 
-	constructor( data )
+	constructor( data = [])
 	{
 		this.#data = data;
 	}
