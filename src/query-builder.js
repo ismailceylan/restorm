@@ -179,7 +179,7 @@ export default class QueryBuilder
 
 	async $get()
 	{
-		return this.#stripBody(
+		return this.model.$pluck(
 			( await this.client.get()).data
 		);
 	}
@@ -293,7 +293,7 @@ export default class QueryBuilder
 
 	#hydrate( response )
 	{
-		const data = this.#stripBody( response.data );
+		const data = this.model.$pluck( response.data );
 
 		if( isPlainObject( data ))
 		{
@@ -307,11 +307,6 @@ export default class QueryBuilder
 				)
 			);
 		}
-	}
-
-	#stripBody( responseBody )
-	{
-		return this.model.$pluck( responseBody );
 	}
 
 	#build( name, stack )
