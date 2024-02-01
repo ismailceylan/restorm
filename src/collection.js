@@ -96,7 +96,7 @@ Object.setPrototypeOf( Collection.prototype, new Proxy( Collection.prototype,
 {
 	get( _target, key, instance )
 	{
-		if( isNaN( key ) == false )
+		if( typeof( key ) != "symbol" && isNaN( key ) == false )
 		{
 			return instance.get( key );
 		}
