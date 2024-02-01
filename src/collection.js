@@ -69,6 +69,16 @@ export default class Collection
 		return new Collection( stack );
 	}
 
+	toArray()
+	{
+		return this.#data;
+	}
+
+	toString()
+	{
+		return JSON.stringify( this.#data );
+	}
+
 	[ Symbol.iterator ]()
 	{
 		let index = 0;
