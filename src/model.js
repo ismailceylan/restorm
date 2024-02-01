@@ -110,6 +110,11 @@ export default class Model
 		return responseBody;
 	}
 	
+	toString()
+	{
+		return JSON.stringify( this.original );
+	}
+
 	static createBuilder()
 	{
 		const builder = new QueryBuilder( this );
