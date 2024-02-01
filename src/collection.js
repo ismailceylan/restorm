@@ -14,6 +14,11 @@ export default class Collection
 		return this.#data.length;
 	}
 
+	set data( data )
+	{
+		this.#data = data;
+	}
+
 	first()
 	{
 		return this.#data[ 0 ];
