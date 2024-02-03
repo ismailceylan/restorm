@@ -203,21 +203,11 @@ export default class QueryBuilder
 
 	async find( value )
 	{
-		const result = await this
+		return this
 			.resource( this.model.resource + "/" + value )
 			.page( null )
 			.limit( null )
 			.get();
-
-		if( result instanceof Model )
-		{
-			return result;
-		}
-
-		if( result instanceof Collection )
-		{
-			return result.first();
-		}
 	}
 
 	cancel()
