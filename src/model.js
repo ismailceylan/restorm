@@ -95,6 +95,11 @@ export default class Model
 		return this.createBuilder().find( ...arguments );
 	}
 	
+	static paginate( startPage )
+	{
+		return this.createBuilder().paginate( ...arguments );
+	}
+
 	static resource( resource )
 	{
 		return this.createBuilder().resource( ...arguments );

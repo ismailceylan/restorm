@@ -1,4 +1,4 @@
-import { Field, Value, Client, Collection, Model } from ".";
+import { Field, Value, Client, Collection, Paginate } from ".";
 import { flatObject, isPlainObject } from "./utils";
 
 export default class QueryBuilder
@@ -208,6 +208,11 @@ export default class QueryBuilder
 			.page( null )
 			.limit( null )
 			.get();
+	}
+
+	async paginate( startPage )
+	{
+		return ( new Paginate( this, startPage )).ping();
 	}
 
 	cancel()
