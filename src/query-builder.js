@@ -193,7 +193,7 @@ export default class QueryBuilder
 
 	async all()
 	{
-		return this.get();
+		return this.page( null ).limit( null ).get();
 	}
 
 	async first()
