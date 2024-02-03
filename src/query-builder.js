@@ -198,17 +198,7 @@ export default class QueryBuilder
 
 	async first()
 	{
-		const result = await this.page( 1 ).limit( 1 ).get();
-
-		if( result instanceof Model )
-		{
-			return result;
-		}
-
-		if( result instanceof Collection )
-		{
-			return result.first();
-		}
+		return ( await this.page( 1 ).limit( 1 ).get()).first();
 	}
 
 	async find( value )
