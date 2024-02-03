@@ -1,6 +1,6 @@
 import Collection from "./collection";
 
-export default class Paginate extends Collection
+export default class LengthAwarePaginator extends Collection
 {
 	startPage = 1;
 	builder = null;
@@ -12,11 +12,15 @@ export default class Paginate extends Collection
 
 		this.builder = builder;
 		this.startPage = startPage;
+
+		builder
+			.params({ paginate: "full" })
+			.page( startPage );
 	}
 
 	async ping()
 	{
-		this.response = await this.builder.page( this.startPage ).$$get();
+		this.response = await this.builder.$$get();
 
 		this.data = this.builder.model
 			.$pluck( this.response.data )
@@ -29,7 +33,7 @@ export default class Paginate extends Collection
 
 	async next()
 	{
-		this.startPage++
+		this.builder.page( ++this.startPage );
 		return this.ping();
 	}
 }
