@@ -172,7 +172,7 @@ export default class QueryBuilder
 		return this;
 	}
 
-	$$get()
+	async $$get()
 	{
 		return this.client.get();
 	}
@@ -191,7 +191,7 @@ export default class QueryBuilder
 		);
 	}
 
-	all()
+	async all()
 	{
 		return this.get();
 	}
