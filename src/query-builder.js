@@ -241,7 +241,7 @@ export default class QueryBuilder
 	{
 		if( evtName in this.events )
 		{
-			this.events[ evtName ]( ...args );
+			this.events[ evtName ].call( this, ...args );
 		}
 
 		return this;
