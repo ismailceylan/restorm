@@ -53,7 +53,14 @@ export default class Collection
 			this.#data.filter( ...arguments )
 		);
 	}
-	
+
+	sort( compareFn )
+	{
+		return new Collection(
+			this.#data.sort( compareFn )
+		);
+	}
+
 	reduce()
 	{
 		return new Collection(
