@@ -13,6 +13,7 @@ export default class QueryBuilder
 	additionalParams = {}
 	temporaryResource = null;
 	events = {}
+	casts = {}
 
 	constructor( Model )
 	{
@@ -172,6 +173,22 @@ export default class QueryBuilder
 		return this;
 	}
 
+	cast( fieldNameOrFieldsObj, castHandle )
+	{
+		const casts = this.casts;
+
+		if( arguments.length === 2 )
+		{
+			casts[ fieldNameOrFieldsObj ] = castHandle;
+		}
+		else if( isPlainObject( fieldNameOrFieldsObj ))
+		{
+			Object.assign( casts, fieldNameOrFieldsObj );
+		}
+
+		return this;
+	}
+
 	async $$get()
 	{
 		return this.client.get();
@@ -279,16 +296,17 @@ export default class QueryBuilder
 	#hydrate( response )
 	{
 		const data = this.model.$pluck( response.data );
+		const casts = Object.assign({}, this.model.casts, this.casts );
 
 		if( isPlainObject( data ))
 		{
-			return new this.model( data );
+			return new this.model( data, casts );
 		}
 		else if( Array.isArray( data ))
 		{
 			return new Collection(
 				data.map( item =>
-					new this.model( item )
+					new this.model( item, casts )
 				)
 			);
 		}

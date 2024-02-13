@@ -5,14 +5,16 @@ export default class Model
 {
 	static primaryKey = "id";
 	static resource = "";
+	static casts = {}
 
 	modified = {}
 	original = {}
 	isDirty = false;
 
-	constructor( properties = {})
+	constructor( properties = {}, casts = {})
 	{
 		this.original = { ...this.original, ...properties }
+		this.#applyCasts( casts );
 	}
 
 	static select()
@@ -110,6 +112,11 @@ export default class Model
 		return this.createBuilder().on( ...arguments );
 	}
 
+	static cast( fieldNameOrFieldsObj, castHandle )
+	{
+		return this.createBuilder().cast( ...arguments );
+	}
+
 	static $pluck( responseBody )
 	{
 		return responseBody;
@@ -173,6 +180,18 @@ export default class Model
 
 		return staticMethods;
 	}
+
+	#applyCasts( casts )
+	{
+		for( const key in casts )
+		{
+			this.original[ key ] = casts[ key ](
+				this.original[ key ],
+				this.original
+			);
+		}
+	}
+
 
 	save()
 	{
