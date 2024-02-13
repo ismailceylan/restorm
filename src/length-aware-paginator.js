@@ -14,7 +14,7 @@ export default class LengthAwarePaginator extends Collection
 		this.startPage = startPage;
 
 		builder
-			.params({ paginate: "full" })
+			.params({ paginate: "length-aware" })
 			.page( startPage );
 	}
 
