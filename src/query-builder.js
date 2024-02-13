@@ -7,7 +7,6 @@ export default class QueryBuilder
 	wheres = [];
 	withs = [];
 	selects = [];
-	scopes = [];
 	currentPage = null;
 	currentLimit = 10;
 	additionalParams = {}
@@ -121,17 +120,6 @@ export default class QueryBuilder
 			handler( this, condition );
 		}
 		
-		return this;
-	}
-
-	scope( field, value )
-	{
-		this.scopes.push(
-		[
-			new Field( field ),
-			value
-		]);
-
 		return this;
 	}
 
@@ -286,7 +274,6 @@ export default class QueryBuilder
 			...this.#build( "sort", this.orderBys ),
 			...this.#build( "with", this.withs ),
 			...this.#build( "field", this.selects ),
-			...this.#build( "scope", this.scopes ),
 			...this.additionalParams,
 			limit: this.currentLimit,
 			page: this.currentPage,
