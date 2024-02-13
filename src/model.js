@@ -124,16 +124,21 @@ export default class Model
 
 		Object.keys( methods ).forEach( name =>
 		{
+			const method = methods[ name ];
+
 			if( name.slice( 0, 2 ) == "on" )
 			{
 				builder.on(
 					camelToDash( name.slice( 2 )),
-					methods[ name ]
+					method
 				);
 			}
 			else
 			{
-				builder[ name ] = methods[ name ];
+				if( ! ( name in builder ))
+				{
+					builder[ name ] = method;
+				}
 			}
 		});
 	
