@@ -116,11 +116,6 @@ export default class Model
 	{
 		return responseBody;
 	}
-	
-	toString()
-	{
-		return JSON.stringify( this.original );
-	}
 
 	static createBuilder()
 	{
@@ -187,6 +182,10 @@ export default class Model
 		}
 	}
 
+	toString()
+	{
+		return JSON.stringify( this.original );
+	}
 
 	save()
 	{
