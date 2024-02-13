@@ -19,7 +19,7 @@ export default class Client
 	{
 		this.abortController.abort();
 		this.abortController = new AbortController();
-		this.query.trigger( "canceled" );
+		this.query.trigger( "canceled", [ this ]);
 	}
 
 	async get()
@@ -34,15 +34,18 @@ export default class Client
 				params: this.query.compile()
 			});
 
-			this.query.trigger( "ready", [ response ]);
-			this.query.trigger( response.status, [ response ]);
+			this.query.trigger( "success", [ response, this ]);
+			this.query.trigger( response.status, [ response, this ]);
+			this.query.trigger( "finished", [ response, this ]);
 
 			return response;
 		}
 		catch( err )
 		{
-			this.query.trigger( "failed", [ err ]);
-			this.query.trigger( err.response.status, [ err ]);
+			this.query.trigger( "failed", [ err, this ]);
+			this.query.trigger( err.response.status, [ err, this ]);
+			this.query.trigger( "finished", [ err, this ]);
+
 			throw err;
 		}
 	}
