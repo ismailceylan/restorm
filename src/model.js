@@ -115,7 +115,7 @@ export default class Model
 			.on( evtName, handler, { append });
 	}
 
-	static cast( fieldNameOrFieldsObj, castHandle )
+	static cast( fieldNameOrFieldsObj, castHandle, payload = [])
 	{
 		return this.createBuilder().cast( ...arguments );
 	}

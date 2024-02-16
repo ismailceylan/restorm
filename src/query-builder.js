@@ -162,17 +162,19 @@ export default class QueryBuilder
 		return this;
 	}
 
-	cast( fieldNameOrFieldsObj, castHandle )
+	cast( fieldNameOrFieldsObj, castHandle, payload = [])
 	{
-		const casts = this.casts;
-
-		if( arguments.length === 2 )
+		if( arguments.length > 1 )
 		{
-			casts[ fieldNameOrFieldsObj ] = castHandle;
+			this.casts[ fieldNameOrFieldsObj ] =
+			{
+				payload,
+				handle: castHandle,
+			}
 		}
 		else if( isPlainObject( fieldNameOrFieldsObj ))
 		{
-			Object.assign( casts, fieldNameOrFieldsObj );
+			Object.assign( this.casts, fieldNameOrFieldsObj );
 		}
 
 		return this;
