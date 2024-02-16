@@ -134,6 +134,31 @@ export default class Model
 			.cast( ...arguments );
 	}
 
+	#applyCasts( casts )
+	{
+		for( const key in casts )
+		{
+			const cast = casts[ key ];;
+			let handle, payload;
+
+			if( typeof( casts[ key ]) == "function" )
+			{
+				handle = cast;
+				payload = [];
+			}
+			else
+			{
+				handle = cast.handle;
+				payload = cast.payload || [];
+			}
+
+			this.original[ key ] = handle(
+				this.original[ key ],
+				this.original,
+				...payload
+			);
+		}
+	}
 
 	static $pluck( responseBody )
 	{
