@@ -109,9 +109,11 @@ export default class Model
 		return this.createBuilder().resource( ...arguments );
 	}
 
-	static on( evtName, args = [])
+	static on( evtName, handler, { append = true } = {})
 	{
-		return this.createBuilder().on( ...arguments );
+		return this
+			.createBuilder()
+			.on( evtName, handler, { append });
 	}
 
 	static cast( fieldNameOrFieldsObj, castHandle )

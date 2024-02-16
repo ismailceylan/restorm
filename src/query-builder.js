@@ -280,14 +280,21 @@ export default class QueryBuilder
 		this.client.cancel();
 	}
 
-	on( evtName, handler )
+	on( evtName, handler, { append = false } = {})
 	{
 		if( ! ( evtName in this.events ))
 		{
 			this.events[ evtName ] = [];
 		}
 
-		this.events[ evtName ] = handler;
+		if( append )
+		{
+			this.events[ evtName ].push( handler );
+		}
+		else
+		{
+			this.events[ evtName ] = [ handler ];
+		}
 
 		return this;
 	}
@@ -296,7 +303,9 @@ export default class QueryBuilder
 	{
 		if( evtName in this.events )
 		{
-			this.events[ evtName ].call( this, ...args );
+			this.events[ evtName ].forEach( handler =>
+				handler.call( this, ...args )
+			);
 		}
 
 		return this;
