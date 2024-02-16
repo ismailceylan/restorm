@@ -115,6 +115,13 @@ export default class Model
 			.on( evtName, handler, { append });
 	}
 
+	on( evtName, handler, { append = true } = {})
+	{
+		return this.constructor
+			.createBuilder( this )
+			.on( evtName, handler, { append });
+	}
+
 	static cast( fieldNameOrFieldsObj, castHandle, payload = [])
 	{
 		return this.createBuilder().cast( ...arguments );
