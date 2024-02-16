@@ -11,6 +11,8 @@ export default class Model
 	original = {}
 	isDirty = false;
 
+	[ Symbol.toStringTag ] = "Model";
+
 	constructor( properties = {}, casts = {})
 	{
 		this.init( properties, casts );
