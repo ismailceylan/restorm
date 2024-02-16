@@ -11,8 +11,6 @@ export default class Model
 	original = {}
 	isDirty = false;
 
-	[ Symbol.toStringTag ] = "Model";
-
 	constructor( properties = {}, casts = {})
 	{
 		this.init( properties, casts );
@@ -271,6 +269,11 @@ Object.setPrototypeOf( Model.prototype, new Proxy( Model.prototype,
 
 	get( Model, key, instance )
 	{
+		if( key === Symbol.toStringTag )
+		{
+			return "Model";
+		}
+
 		return instance.original[ key ];
 	}
 }));
