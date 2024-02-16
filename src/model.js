@@ -13,8 +13,7 @@ export default class Model
 
 	constructor( properties = {}, casts = {})
 	{
-		this.original = { ...this.original, ...properties }
-		this.#applyCasts( casts );
+		this.init( properties, casts );
 	}
 
 	static select()
@@ -185,20 +184,12 @@ export default class Model
 		return staticMethods;
 	}
 
-	#applyCasts( casts )
+	init( properties, casts )
 	{
-		for( const key in casts )
-		{
-			this.original[ key ] = casts[ key ](
-				this.original[ key ],
-				this.original
-			);
-		}
-	}
-
-	toString()
-	{
-		return JSON.stringify( this.original );
+		this.original = { ...this.original, ...properties }
+		this.#applyCasts( casts );
+		
+		return this;
 	}
 
 	save()
