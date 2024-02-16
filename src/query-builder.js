@@ -251,8 +251,10 @@ export default class QueryBuilder
 				this.trigger( "failed", argsToPass );
 				this.trigger( "finished", argsToPass );
 			}
-
-			throw err;
+			else
+			{
+				throw err;
+			}
 		}
 	}
 
