@@ -191,9 +191,33 @@ export default class QueryBuilder
 
 	async get()
 	{
-		return this.#hydrate(
-			await this.client.get()
-		);
+		this.trigger( "waiting", [ this ]);
+
+		try
+		{
+			const response = await this.client.get();
+			const result = this.#hydrate( response );
+			const argsToPass = [ result, response, this ];
+
+			this.trigger( response.status, argsToPass );
+			this.trigger( "success", argsToPass );
+			this.trigger( "finished", argsToPass );
+
+			return result;
+		}
+		catch( err )
+		{
+			if( err?.name == 'AxiosError' )
+			{
+				const argsToPass = [ err, this ];
+
+				this.trigger( err.response.status, argsToPass );
+				this.trigger( "failed", argsToPass );
+				this.trigger( "finished", argsToPass );
+			}
+
+			throw err;
+		}
 	}
 
 	async all()
