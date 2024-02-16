@@ -352,6 +352,11 @@ export default class QueryBuilder
 
 		if( isPlainObject( data ))
 		{
+			if( this.modelInstance )
+			{
+				return this.modelInstance.init( data, casts );
+			}
+
 			return new this.model( data, casts );
 		}
 		else if( Array.isArray( data ))
