@@ -220,6 +220,37 @@ export default class QueryBuilder
 		}
 	}
 
+	async put( payload )
+	{
+		this.trigger( "waiting", [ this ]);
+
+		try
+		{
+			const response = await this.client.put( payload );
+			const result = this.#hydrate( response );
+			const argsToPass = [ result, response, this ];
+
+			this.trigger( response.status, argsToPass );
+			this.trigger( "success", argsToPass );
+			this.trigger( "finished", argsToPass );
+
+			return result;
+		}
+		catch( err )
+		{
+			if( err?.name == 'AxiosError' )
+			{
+				const argsToPass = [ err, this ];
+	
+				this.trigger( err.response.status, argsToPass );
+				this.trigger( "failed", argsToPass );
+				this.trigger( "finished", argsToPass );
+			}
+
+			throw err;
+		}
+	}
+
 	async all()
 	{
 		return this.page( null ).limit( null ).get();

@@ -31,4 +31,13 @@ export default class Client
 		});
 	}
 
+	async put( payload )
+	{
+		const url = this.query.getResource() + "/" + this.query.modelInstance.id;
+
+		return this.http.put( url, payload,
+		{
+			signal: this.abortController.signal
+		});
+	}
 }
