@@ -241,6 +241,12 @@ export default class Model
 	{
 		return key in this.original;
 	}
+
+	toString()
+	{
+		return JSON.stringify( this.original );
+	}
+
 }
 
 Object.setPrototypeOf( Model.prototype, new Proxy( Model.prototype,
