@@ -126,9 +126,9 @@ export default class Model
 		return responseBody;
 	}
 
-	static createBuilder()
+	static createBuilder( modelInstance )
 	{
-		const builder = new QueryBuilder( this );
+		const builder = new QueryBuilder( this, modelInstance );
 		const methods = this.getInheritedMethods();
 
 		Object.keys( methods ).forEach( name =>

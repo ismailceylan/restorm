@@ -14,9 +14,10 @@ export default class QueryBuilder
 	events = {}
 	casts = {}
 
-	constructor( Model )
+	constructor( Model, modelInstance )
 	{
 		this.model = Model;
+		this.modelInstance = modelInstance;
 		this.client = new Client( this );
 		
 		if( Model.itemsPerPage )
