@@ -127,6 +127,14 @@ export default class Model
 		return this.createBuilder().cast( ...arguments );
 	}
 
+	cast( fieldNameOrFieldsObj, castHandle, payload = [])
+	{
+		return this.constructor
+			.createBuilder( this )
+			.cast( ...arguments );
+	}
+
+
 	static $pluck( responseBody )
 	{
 		return responseBody;
