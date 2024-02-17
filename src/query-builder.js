@@ -180,7 +180,7 @@ export default class QueryBuilder
 		return this;
 	}
 
-	async $$get()
+	$$get()
 	{
 		return this.client.get();
 	}
@@ -298,7 +298,7 @@ export default class QueryBuilder
 		}
 	}
 
-	async all()
+	all()
 	{
 		return this.page( null ).limit( null ).get();
 	}
@@ -308,7 +308,7 @@ export default class QueryBuilder
 		return ( await this.page( 1 ).limit( 1 ).get()).first();
 	}
 
-	async find( value )
+	find( value )
 	{
 		return this
 			.resource( this.model.resource + "/" + value )
@@ -317,7 +317,7 @@ export default class QueryBuilder
 			.get();
 	}
 
-	async paginate( startPage )
+	paginate( startPage )
 	{
 		return ( new LengthAwarePaginator( this, startPage )).ping();
 	}

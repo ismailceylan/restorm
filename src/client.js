@@ -22,7 +22,7 @@ export default class Client
 		this.query.trigger( "canceled", [ this ]);
 	}
 
-	async get()
+	get()
 	{
 		return this.http.get( this.query.getResource(),
 		{
@@ -31,7 +31,7 @@ export default class Client
 		});
 	}
 
-	async put( primaryKeyValue, payload )
+	put( primaryKeyValue, payload )
 	{
 		if( arguments.length == 1 )
 		{
@@ -47,7 +47,7 @@ export default class Client
 		});
 	}
 
-	async patch( payload )
+	patch( payload )
 	{
 		const url = this.query.getResource() + "/" + this.query.modelInstance.id;
 
