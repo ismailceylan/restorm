@@ -266,6 +266,11 @@ export default class Model
 
 		this.isDirty = false;
 	}
+
+	getPrimaryValue()
+	{
+		return this.original[ this.constructor.primaryKey ];
+	}
 }
 
 Object.setPrototypeOf( Model.prototype, new Proxy( Model.prototype,
