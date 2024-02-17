@@ -192,88 +192,44 @@ export default class QueryBuilder
 		);
 	}
 
-	async get()
+	get()
 	{
-		this.trigger( "waiting", [ this ]);
-
-		try
-		{
-			const response = await this.client.get();
-			const result = this.#hydrate( response );
-			const argsToPass = [ result, response, this ];
-
-			this.trigger( response.status, argsToPass );
-			this.trigger( "success", argsToPass );
-			this.trigger( "finished", argsToPass );
-
-			return result;
-		}
-		catch( err )
-		{
-			if( err?.name == 'AxiosError' )
-			{
-				const argsToPass = [ err, this ];
-
-				this.trigger( err.response.status, argsToPass );
-				this.trigger( "failed", argsToPass );
-				this.trigger( "finished", argsToPass );
-			}
-			else
-			{
-				throw err;
-			}
-		}
+		return this.request(() =>
+			this.client.get()
+		);
 	}
 
-	async put( targetPrimaryKeyValueOrPayload, payload )
+	put( targetPrimaryKeyValueOrPayload, payload )
 	{
-		this.trigger( "waiting", [ this ]);
-
-		try
-		{
-			const response = await this.client.put( ...arguments );
-			const result = this.#hydrate( response );
-			const argsToPass = [ result, response, this ];
-
-			this.trigger( response.status, argsToPass );
-			this.trigger( "success", argsToPass );
-			this.trigger( "finished", argsToPass );
-
-			return result;
-		}
-		catch( err )
-		{
-			if( err?.name == 'AxiosError' )
-			{
-				const argsToPass = [ err, this ];
-	
-				this.trigger( err.response.status, argsToPass );
-				this.trigger( "failed", argsToPass );
-				this.trigger( "finished", argsToPass );
-			}
-			else
-			{
-				throw err;
-			}
-		}
+		return this.request(() =>
+			this.client.put( ...arguments )
+		);
 	}
 
-	async patch()
+	patch()
 	{
 		if( ! this.modelInstance.isDirty )
 		{
 			return;
 		}
 
+		return this.request(
+			() => this.client.patch( this.modelInstance.modified ),
+			() => this.modelInstance.clean()
+		);
+	}
+
+	async request( makeRequest, afterRequested )
+	{
 		this.trigger( "waiting", [ this ]);
 
 		try
 		{
-			const response = await this.client.patch( this.modelInstance.modified );
+			const response = await makeRequest();
 			const result = this.#hydrate( response );
 			const argsToPass = [ result, response, this ];
 
-			this.modelInstance.clean();
+			afterRequested && afterRequested();
 
 			this.trigger( response.status, argsToPass );
 			this.trigger( "success", argsToPass );
