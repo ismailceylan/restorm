@@ -83,9 +83,12 @@ export default class Model
 
 	put( payload )
 	{
-		return this.constructor
-			.createBuilder( this )
-			.put( ...arguments );
+		return this.constructor.createBuilder( this ).put( ...arguments );
+	}
+
+	patch()
+	{
+		return this.constructor.createBuilder( this ).patch( ...arguments );
 	}
 
 	static first()
@@ -247,6 +250,17 @@ export default class Model
 		return JSON.stringify( this.original );
 	}
 
+	clean()
+	{
+		for( const key in this.modified )
+		{
+			this.original[ key ] = this.modified[ key ];
+
+			delete this.modified[ key ];
+		}
+
+		this.isDirty = false;
+	}
 }
 
 Object.setPrototypeOf( Model.prototype, new Proxy( Model.prototype,

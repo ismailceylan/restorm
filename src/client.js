@@ -40,4 +40,14 @@ export default class Client
 			signal: this.abortController.signal
 		});
 	}
+
+	async patch( payload )
+	{
+		const url = this.query.getResource() + "/" + this.query.modelInstance.id;
+
+		return this.http.patch( url, payload,
+		{
+			signal: this.abortController.signal
+		});
+	}
 }
