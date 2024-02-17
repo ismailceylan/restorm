@@ -267,7 +267,7 @@ export default class Model
 		this.isDirty = false;
 	}
 
-	getPrimaryValue()
+	get primary()
 	{
 		return this.original[ this.constructor.primaryKey ];
 	}

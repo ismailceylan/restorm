@@ -36,7 +36,7 @@ export default class Client
 		if( arguments.length == 1 )
 		{
 			payload = primaryKeyValue;
-			primaryKeyValue = this.query.modelInstance.getPrimaryValue();
+			primaryKeyValue = this.query.modelInstance.primary;
 		}
 
 		const url = this.query.getResource() + "/" + primaryKeyValue;
