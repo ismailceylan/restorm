@@ -31,9 +31,15 @@ export default class Client
 		});
 	}
 
-	async put( payload )
+	async put( primaryKeyValue, payload )
 	{
-		const url = this.query.getResource() + "/" + this.query.modelInstance.id;
+		if( arguments.length == 1 )
+		{
+			payload = primaryKeyValue;
+			primaryKeyValue = this.query.modelInstance.getPrimaryValue();
+		}
+
+		const url = this.query.getResource() + "/" + primaryKeyValue;
 
 		return this.http.put( url, payload,
 		{

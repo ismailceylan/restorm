@@ -81,6 +81,11 @@ export default class Model
 		return this.createBuilder().$$get( ...arguments );
 	}
 
+	static put( targetPrimaryKeyValueOrPayload, payload )
+	{
+		return this.createBuilder().put( ...arguments );
+	}
+
 	put( payload )
 	{
 		return this.constructor.createBuilder( this ).put( ...arguments );

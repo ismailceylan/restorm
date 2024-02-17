@@ -225,13 +225,13 @@ export default class QueryBuilder
 		}
 	}
 
-	async put( payload )
+	async put( targetPrimaryKeyValueOrPayload, payload )
 	{
 		this.trigger( "waiting", [ this ]);
 
 		try
 		{
-			const response = await this.client.put( payload );
+			const response = await this.client.put( ...arguments );
 			const result = this.#hydrate( response );
 			const argsToPass = [ result, response, this ];
 
