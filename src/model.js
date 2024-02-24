@@ -474,6 +474,8 @@ export default class Model
 	 * @typedef eventListenerOptions
 	 * @type {object}
 	 * @property {boolean} append true for append, false for replace mode
+	 * @property {boolean} once true for run the event once or false for
+	 * keep it persistent
 	 */
 	/**
 	 * Registers a new event listener.
@@ -483,11 +485,11 @@ export default class Model
 	 * @param {eventListenerOptions} options options
 	 * @return {QueryBuilder}
 	 */
-	static on( evtName, handler, { append = true } = {})
+	static on( evtName, handler, { append = true, once = false } = {})
 	{
 		return this
 			.createBuilder()
-			.on( evtName, handler, { append });
+			.on( evtName, handler, { append, once });
 	}
 
 	/**
@@ -498,11 +500,11 @@ export default class Model
 	 * @param {eventListenerOptions} options options
 	 * @return {QueryBuilder}
 	 */
-	on( evtName, handler, { append = true } = {})
+	on( evtName, handler, { append = true, once = false } = {})
 	{
 		return this.constructor
 			.createBuilder( this )
-			.on( evtName, handler, { append });
+			.on( evtName, handler, { append, once });
 	}
 
 	/**

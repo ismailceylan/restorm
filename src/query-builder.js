@@ -1,5 +1,6 @@
 import { Field, Value, Client, Collection, LengthAwarePaginator, Model } from ".";
 import { flatObject, isPlainObject } from "./utils";
+import { symOnce } from "./utils/symbols";
 
 export default class QueryBuilder
 {
@@ -546,6 +547,8 @@ export default class QueryBuilder
 	 * @typedef eventListenerOptions
 	 * @type {object}
 	 * @property {boolean} append true for append, false for replace mode
+	 * @property {boolean} once true for run the event once or false for
+	 * keep it persistent
 	 */
 	/**
 	 * Registers a new event listener.
@@ -555,12 +558,14 @@ export default class QueryBuilder
 	 * @param {eventListenerOptions} options options
 	 * @return {QueryBuilder}
 	 */
-	on( evtName, handler, { append = false } = {})
+	on( evtName, handler, { append = false, once = false } = {})
 	{
 		if( ! ( evtName in this.events ))
 		{
 			this.events[ evtName ] = [];
 		}
+		
+		handler[ symOnce ] = once;
 
 		if( append )
 		{
@@ -656,9 +661,15 @@ export default class QueryBuilder
 	{
 		if( evtName in this.events )
 		{
-			this.events[ evtName ].forEach( handler =>
-				handler.call( this, ...args )
-			);
+			this.events[ evtName ].forEach(( handler, i ) =>
+			{
+				handler.call( this, ...args );
+
+				if( handler[ symOnce ])
+				{
+					this.events[ evtName ].splice( i, 1 );
+				}
+			});
 		}
 
 		return this;
