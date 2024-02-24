@@ -49,7 +49,7 @@ export default class Client
 
 	patch( payload )
 	{
-		const url = this.query.getResource() + "/" + this.query.modelInstance.id;
+		const url = this.query.getResource() + "/" + this.query.modelInstance.primary;
 
 		return this.http.patch( url, payload,
 		{
