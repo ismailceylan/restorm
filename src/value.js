@@ -1,7 +1,17 @@
 export default class Value
 {
+	/**
+	 * Represented value.
+	 * 
+	 * @type {array}
+	 */
 	value = [];
 
+	/**
+	 * Instantiate a value proxy for given value.
+	 * 
+	 * @param {string|array} value a value to proxy
+	 */
 	constructor( value )
 	{
 		if( typeof( value ) == "string" )
@@ -16,6 +26,11 @@ export default class Value
 		}
 	}
 
+	/**
+	 * Returns the proxied value as a string.
+	 *  
+	 * @return {string}
+	 */
 	toString()
 	{
 		return this.value.join( "," );
