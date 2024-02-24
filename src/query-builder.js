@@ -670,18 +670,15 @@ export default class QueryBuilder
 	 */
 	trigger( evtName, args = [])
 	{
-		if( evtName in this.events )
+		( this.events[ evtName ] || []).forEach(( handler, i ) =>
 		{
-			this.events[ evtName ].forEach(( handler, i ) =>
-			{
-				handler.call( this, ...args );
+			handler.call( this, ...args );
 
-				if( handler[ symOnce ])
-				{
-					this.events[ evtName ].splice( i, 1 );
-				}
-			});
-		}
+			if( handler[ symOnce ])
+			{
+				this.events[ evtName ].splice( i, 1 );
+			}
+		});
 
 		return this;
 	}
