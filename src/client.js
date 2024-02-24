@@ -2,8 +2,18 @@ import Axios from "axios";
 
 export default class Client
 {
+	/**
+	 * Abortion interface.
+	 * 
+	 * @type {AbortController}
+	 */
 	abortController = new AbortController;
 
+	/**
+	 * Instantiate a client interface.
+	 * 
+	 * @param {QueryBuilder} query 
+	 */
 	constructor( query )
 	{
 		this.query = query;
@@ -15,6 +25,11 @@ export default class Client
 		});
 	}
 
+	/**
+	 * Terminates ongoing request.
+	 * 
+	 * @emits QueryBuilder#canceled
+	 */
 	cancel()
 	{
 		this.abortController.abort();
@@ -22,6 +37,12 @@ export default class Client
 		this.query.trigger( "canceled", [ this ]);
 	}
 
+	/**
+	 * Performs `GET` request and returns a promise to fullfill when
+	 * received a successful response.
+	 * 
+	 * @return {Promise<AxiosResponse<any,any>>}
+	 */
 	get()
 	{
 		return this.http.get( this.query.getResource(),
@@ -31,15 +52,24 @@ export default class Client
 		});
 	}
 
-	put( primaryKeyValue, payload )
+	/**
+	 * Performs `PUT` request and returns a promise to fullfil when
+	 * received a succesfull response.
+	 * 
+	 * @param {string|number|object} primaryKeyValueOrPayload primary key
+	 * value or payload
+	 * @param {object=} payload payload object to put endpoint
+	 * @return {Promise<AxiosResponse<any,any>>}
+	 */
+	put( primaryKeyValueOrPayload, payload )
 	{
 		if( arguments.length == 1 )
 		{
-			payload = primaryKeyValue;
-			primaryKeyValue = this.query.modelInstance.primary;
+			payload = primaryKeyValueOrPayload;
+			primaryKeyValueOrPayload = this.query.modelInstance.primary;
 		}
 
-		const url = this.query.getResource() + "/" + primaryKeyValue;
+		const url = this.query.getResource() + "/" + primaryKeyValueOrPayload;
 
 		return this.http.put( url, payload,
 		{
@@ -47,6 +77,13 @@ export default class Client
 		});
 	}
 
+	/**
+	 * Performs `PATCH` request and returns a promise to fullfil when
+	 * received a succesfull response.
+	 * 
+	 * @param {object} payload field and values for patch resource
+	 * @return {Promise<AxiosResponse<any,any>>}
+	 */
 	patch( payload )
 	{
 		const url = this.query.getResource() + "/" + this.query.modelInstance.primary;

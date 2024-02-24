@@ -379,7 +379,7 @@ export default class QueryBuilder
 	 * 
 	 * If it finds no items, it returns an empty collection.
 	 * 
-	 * @return {Promise<Collection>}
+	 * @return {Promise<Collection<Model>>}
 	 */
 	async all()
 	{
@@ -404,7 +404,7 @@ export default class QueryBuilder
 	 * When the response is received, it instantiates the results
 	 * as a model or collection and fullfills the returned promise.
 	 * 
-	 * @return {Promise<Model>|Promise<Collection>}
+	 * @return {Promise<Model>|Promise<Collection<Model>>}
 	 */
 	get()
 	{
@@ -444,7 +444,7 @@ export default class QueryBuilder
 	 * @param {string|number|object} targetPrimaryKeyValueOrPayload a primary key
 	 * value or a plain object as payload
 	 * @param {object=} payload 
-	 * @return {Promise<Model>|Promise<Collection>}
+	 * @return {Promise<Model>|Promise<Collection<Model>>}
 	 */
 	put( targetPrimaryKeyValueOrPayload, payload )
 	{
@@ -465,7 +465,7 @@ export default class QueryBuilder
 	 * @param {string|number|object} primaryKeyValue a primary key value
 	 * or a plain object as payload
 	 * @param {object} payload params to be sent to the resource
-	 * @return {Promise<Model>|Promise<Collection>}
+	 * @return {Promise<Model>|Promise<Collection<Model>>}
 	 */
 	patch( primaryKeyValue, payload )
 	{
@@ -613,9 +613,15 @@ export default class QueryBuilder
 	 * Makes requests, triggers events, runs hooks, converts received
 	 * resource to a Model or Collection, and resolves with it.
 	 * 
-	 * @param {function} makeRequest 
-	 * @param {function} afterRequested 
-	 * @return {Promise<Model>|Promise<Collection>}
+	 * @param {function} makeRequest request maker function
+	 * @param {function} afterRequested Method to be run after receiving response
+	 * @return {Promise<Model>|Promise<Collection<Model>>}
+	 * @emits QueryBuilder#waiting
+	 * @emits QueryBuilder#[StatusCode]
+	 * @emits QueryBuilder#success
+	 * @emits QueryBuilder#finished
+	 * @emits QueryBuilder#failed
+	 * @emits QueryBuilder#finished
 	 */
 	async request( makeRequest, afterRequested )
 	{

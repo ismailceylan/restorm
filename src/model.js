@@ -282,7 +282,7 @@ export default class Model
 	 * Sets page number and limit null and sends
 	 * a request to retrieve all resources.
 	 * 
-	 * @return {Promise<Collection>}
+	 * @return {Promise<Collection<Model>>}
 	 */
 	static all()
 	{
@@ -297,7 +297,7 @@ export default class Model
 	 * resource will converted a Model or Collection and Promise
 	 * will resolved with it.
 	 * 
-	 * @return {Promise<Model>|Promise<Collection>}
+	 * @return {Promise<Model>|Promise<Collection<Model>>}
 	 */
 	static get()
 	{
@@ -341,7 +341,7 @@ export default class Model
 	 * 
 	 * @param {string|number|object} primaryKeyValue a primary key value
 	 * @param {object} payload params to be sent to the resource
-	 * @return {Promise<Model>|Promise<Collection>}
+	 * @return {Promise<Model>|Promise<Collection<Model>>}
 	 */
 	static put( primaryKeyValue, payload )
 	{
@@ -363,7 +363,7 @@ export default class Model
 	 * ```
 	 * 
 	 * @param {object} payload params to be sent to the resource
-	 * @return {Promise<Model>|Promise<Collection>}
+	 * @return {Promise<Model>|Promise<Collection<Model>>}
 	 */
 	put( payload )
 	{
@@ -389,7 +389,7 @@ export default class Model
 	 * 
 	 * @param {string|number} primaryKeyValue a primary key value
 	 * @param {object} payload params to be sent to the resource
-	 * @return {Promise<Model>|Promise<Collection>}
+	 * @return {Promise<Model>|Promise<Collection<Model>>}
 	 */
 	static patch( primaryKeyValue, payload )
 	{
@@ -412,7 +412,7 @@ export default class Model
 	 * ```
 	 * 
 	 * @param {object} payload params to be sent to the resource
-	 * @return {Promise<Model>|Promise<Collection>}
+	 * @return {Promise<Model>|Promise<Collection<Model>>}
 	 */
 	patch( payload )
 	{
@@ -440,7 +440,7 @@ export default class Model
 	 * at the represented resource endpoint.
 	 * 
 	 * @param {string|number} primary 
-	 * @return {Promise<Model>|Promise<Collection>}
+	 * @return {Promise<Model>|Promise<Collection<Model>>}
 	 */
 	static find( primary )
 	{
