@@ -652,11 +652,22 @@ export default class QueryBuilder
 		}
 	}
 
+	/**
+	 * If there is a request in progress, it stops it.
+	 */
 	cancel()
 	{
 		this.client.cancel();
 	}
 
+	/**
+	 * It executes all event listener methods registered for the
+	 * given named event by passing the given argument list.
+	 * 
+	 * @param {string} evtName event name
+	 * @param {array} args arguments to pass event listener
+	 * @return {QueryBuilder}
+	 */
 	trigger( evtName, args = [])
 	{
 		if( evtName in this.events )
@@ -675,6 +686,13 @@ export default class QueryBuilder
 		return this;
 	}
 
+	/**
+	 * Returns a resource endpoint value for the represented
+	 * model, including the one temporarily assigned by the
+	 * `QueryBuilder.resource` method.
+	 * 
+	 * @return {string}
+	 */
 	getResource()
 	{
 		if( this.temporaryResource )
@@ -689,6 +707,11 @@ export default class QueryBuilder
 		return this.model.resource;
 	}
 
+	/**
+	 * Returns an object containing all created filters and criteria.
+	 * 
+	 * @return {object}
+	 */
 	compile()
 	{
 		return {
@@ -702,6 +725,46 @@ export default class QueryBuilder
 		}
 	}
 
+	/**
+	 * Builds given items stack with given name.
+	 * 
+	 * @param {string} name key name
+	 * @param {array} stack items to build
+	 * @return {object}
+	 */
+	#build( name, stack )
+	{
+		const map = {}
+
+		if( stack instanceof Value )
+		{
+			stack = [ stack ];
+		}
+
+		stack.forEach( item =>
+		{
+			if( item instanceof Array && item[ 0 ] instanceof Field )
+			{
+				map[ name + item[ 0 ]] = item[ 1 ].toString();
+			}
+			else
+			{
+				map[ name ] = item.toString();
+			}
+		});
+
+		return map;
+	}
+
+	/**
+	 * It takes the Response object, processes all the data and
+	 * metadata information it carries, and returns either a model
+	 * or a collection containing models, depending on the returned
+	 * data format.
+	 * 
+	 * @param {object} response response object
+	 * @return {Model|Collection<Model>}
+	 */
 	#hydrate( response )
 	{
 		const data = this.model.$pluck( response.data );
@@ -726,27 +789,4 @@ export default class QueryBuilder
 		}
 	}
 
-	#build( name, stack )
-	{
-		const map = {}
-
-		if( stack instanceof Value )
-		{
-			stack = [ stack ];
-		}
-
-		stack.forEach( item =>
-		{
-			if( item instanceof Array && item[ 0 ] instanceof Field )
-			{
-				map[ name + item[ 0 ]] = item[ 1 ].toString();
-			}
-			else
-			{
-				map[ name ] = item.toString();
-			}
-		});
-
-		return map;
-	}
 }
