@@ -4,9 +4,16 @@ export default class Value
 
 	constructor( value )
 	{
-		this.value = typeof( value ) == "string"
-			? value.split( "," ).map( item => item.trim())
-			: [ value ];
+		if( typeof( value ) == "string" )
+		{
+			this.value = value
+				.split( "," )
+				.map( item => item.trim());
+		}
+		else if( Array.isArray( value ))
+		{
+			this.value = value;
+		}
 	}
 
 	toString()
