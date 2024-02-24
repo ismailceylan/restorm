@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/ismailceylan/restorm/compare/v1.1.0...v1.2.0) (2024-02-24)
+
+
+### Features
+
+* add once mode for event listeners ([91ad6de](https://github.com/ismailceylan/restorm/commit/91ad6de531ad9fa673c1d5057f92080c05ac283c))
+* add patch method ([0e00d57](https://github.com/ismailceylan/restorm/commit/0e00d57f9f6a2acd209661991e49935dd199a603))
+* add support statically put ([4aae64f](https://github.com/ismailceylan/restorm/commit/4aae64ff5a6baeda22a6006adac35e7c7e2da6a6))
+
+
+### Bug Fixes
+
+* **client:** use primary key pointed by model ([0841fcb](https://github.com/ismailceylan/restorm/commit/0841fcbad41ac8669b670caba60ab380cd437fcd))
+
 ## 1.1.0 (2024-02-16)
 
 
