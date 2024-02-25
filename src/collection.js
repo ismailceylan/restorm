@@ -7,7 +7,7 @@ export default class Collection
 	 * 
 	 * @type {array}
 	 */
-	#data = [];
+	data = [];
 
 	/**
 	 * Instantiate a collection that represents given array.
@@ -16,7 +16,7 @@ export default class Collection
 	 */
 	constructor( data = [])
 	{
-		this.#data = data;
+		this.data = data;
 	}
 
 	/**
@@ -27,7 +27,7 @@ export default class Collection
 	 */
 	get size()
 	{
-		return this.#data.length;
+		return this.data.length;
 	}
 
 	/**
@@ -37,7 +37,7 @@ export default class Collection
 	 */
 	set data( data )
 	{
-		this.#data = data;
+		this.data = data;
 	}
 
 	/**
@@ -47,7 +47,7 @@ export default class Collection
 	 */
 	first()
 	{
-		return this.#data[ 0 ];
+		return this.data[ 0 ];
 	}
 
 	/**
@@ -57,7 +57,7 @@ export default class Collection
 	 */
 	last()
 	{
-		return this.#data[ this.size - 1 ];
+		return this.data[ this.size - 1 ];
 	}
 
 	/**
@@ -69,7 +69,7 @@ export default class Collection
 	 */
 	get( index )
 	{
-		return this.#data[ index ];
+		return this.data[ index ];
 	}
 
 	/**
@@ -83,7 +83,7 @@ export default class Collection
 	 */
 	forEach()
 	{
-		this.#data.forEach( ...arguments );
+		this.data.forEach( ...arguments );
 		return this;
 	}
 
@@ -96,7 +96,7 @@ export default class Collection
 	map()
 	{
 		return new Collection(
-			this.#data.map( ...arguments )
+			this.data.map( ...arguments )
 		);
 	}
 
@@ -109,7 +109,7 @@ export default class Collection
 	filter()
 	{
 		return new Collection(
-			this.#data.filter( ...arguments )
+			this.data.filter( ...arguments )
 		);
 	}
 
@@ -122,7 +122,7 @@ export default class Collection
 	sort( compareFn )
 	{
 		return new Collection(
-			this.#data.sort( compareFn )
+			this.data.sort( compareFn )
 		);
 	}
 
@@ -135,7 +135,7 @@ export default class Collection
 	reduce()
 	{
 		return new Collection(
-			this.#data.reduce( ...arguments )
+			this.data.reduce( ...arguments )
 		);
 	}
 
@@ -150,7 +150,7 @@ export default class Collection
 	{
 		const stack = [];
 
-		this.#data.forEach( item =>
+		this.data.forEach( item =>
 		{
 			(( item instanceof Model && item.has( field )) || item.hasOwnProperty( field )) &&
 				stack.push( item[ field ])
@@ -166,7 +166,7 @@ export default class Collection
 	 */
 	toArray()
 	{
-		return this.#data;
+		return this.data;
 	}
 
 	/**
@@ -176,7 +176,7 @@ export default class Collection
 	 */
 	toString()
 	{
-		return JSON.stringify( this.#data );
+		return JSON.stringify( this.data );
 	}
 
 	/**
@@ -211,10 +211,11 @@ export default class Collection
 		return {
 			next: () =>
 			{
-				if( index < this.#data.length )
+				console.log(this);
+				if( index < this.data.length )
 				{
 					return {
-						value: this.#data[ index++ ],
+						value: this.data[ index++ ],
 						done: false
 					}
 				}
