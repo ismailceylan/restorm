@@ -211,7 +211,6 @@ export default class Collection
 		return {
 			next: () =>
 			{
-				console.log(this);
 				if( index < this.data.length )
 				{
 					return {
