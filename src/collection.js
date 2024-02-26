@@ -231,6 +231,11 @@ Object.setPrototypeOf( Collection.prototype, new Proxy( Collection.prototype,
 {
 	get( _target, key, instance )
 	{
+		if( key === Symbol.toStringTag )
+		{
+			return "Collection";
+		}
+
 		if( typeof( key ) != "symbol" && isNaN( key ) == false )
 		{
 			return instance.get( key );
