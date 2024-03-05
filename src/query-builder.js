@@ -632,12 +632,11 @@ export default class QueryBuilder
 			const response = await makeRequest();
 			const result = this.#hydrate( response );
 			const argsToPass = [ result, response, this ];
+			const events = [ response.status, "success", "finished" ];
 
 			afterRequested && afterRequested();
 
-			this.trigger( response.status, argsToPass );
-			this.trigger( "success", argsToPass );
-			this.trigger( "finished", argsToPass );
+			this.trigger( events, argsToPass );
 
 			return result;
 		}
@@ -645,11 +644,10 @@ export default class QueryBuilder
 		{
 			if( err?.name == 'AxiosError' )
 			{
+				const events = [ err.response.status, "failed", "finished" ];
 				const argsToPass = [ err, this ];
 	
-				this.trigger( err.response.status, argsToPass );
-				this.trigger( "failed", argsToPass );
-				this.trigger( "finished", argsToPass );
+				this.trigger( events, argsToPass );
 			}
 			else
 			{
@@ -670,19 +668,26 @@ export default class QueryBuilder
 	 * It executes all event listener methods registered for the
 	 * given named event by passing the given argument list.
 	 * 
-	 * @param {string} evtName event name
+	 * @param {string|array} evtNames event name(s)
 	 * @param {array} args arguments to pass event listener
 	 * @return {QueryBuilder}
 	 */
-	trigger( evtName, args = [])
+	trigger( evtNames, args = [])
 	{
-		( this.events[ evtName ] || []).forEach(( handler, i ) =>
+		if( Array.isArray( evtNames ))
+		{
+			return evtNames.forEach( evt =>
+				this.trigger( evt, args )
+			);
+		}
+
+		( this.events[ evtNames ] || []).forEach(( handler, i ) =>
 		{
 			handler.call( this, ...args );
 
 			if( handler[ symOnce ])
 			{
-				this.events[ evtName ].splice( i, 1 );
+				this.events[ evtNames ].splice( i, 1 );
 			}
 		});
 
