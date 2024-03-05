@@ -39,6 +39,8 @@ export default class LengthAwarePaginator extends Collection
 		builder
 			.params({ paginate: "length-aware" })
 			.page( startPage );
+
+		this.ping();
 	}
 
 	/**

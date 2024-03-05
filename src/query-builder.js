@@ -528,7 +528,7 @@ export default class QueryBuilder
 	 */
 	paginate( startPage )
 	{
-		return ( new LengthAwarePaginator( this, startPage )).ping();
+		return ( new LengthAwarePaginator( this, startPage ));
 	}
 
 	/**
