@@ -1,4 +1,5 @@
 import Collection from "./collection";
+import QueryBuilder from "./query-builder";
 
 export default class LengthAwarePaginator extends Collection
 {
