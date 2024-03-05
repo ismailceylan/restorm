@@ -58,9 +58,6 @@ export default class LengthAwarePaginator extends Collection
 			{
 				this.data = data;
 				this.response = response;
-			},
-			{
-				append: true
 			})
 			.$$get();
 
