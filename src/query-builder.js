@@ -558,7 +558,7 @@ export default class QueryBuilder
 	 * @param {EventListenerOptions} options options
 	 * @return {QueryBuilder}
 	 */
-	on( evtName, handler, { append = false, once = false } = {})
+	on( evtName, handler, { append = true, once = false } = {})
 	{
 		if( ! ( evtName in this.events ))
 		{
