@@ -50,15 +50,19 @@ export default class LengthAwarePaginator extends Collection
 	 * 
 	 * @return {LengthAwarePaginator}
 	 */
-	async ping()
+	ping()
 	{
-		this.response = await this.builder.$$get();
-
-		this.data = this.builder.model
-			.$pluck( this.response.data )
-			.map( item =>
-				new this.builder.model( item )
-			);
+		this.builder
+			.on( 204, () => this.data = [])
+			.on( 200, ({ data }, response ) =>
+			{
+				this.data = data;
+				this.response = response;
+			},
+			{
+				append: true
+			})
+			.$$get();
 
 		return this;
 	}
