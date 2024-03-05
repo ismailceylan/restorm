@@ -1,7 +1,10 @@
-import { Field, Value, Client, Collection, LengthAwarePaginator, Model } from ".";
-import { flatObject, isPlainObject } from "./utils";
 import { symOnce } from "./utils/symbols";
+import { flatObject, isPlainObject } from "./utils";
+import { Field, Value, Client, Collection, LengthAwarePaginator, Model } from ".";
 
+/**
+ * @typedef {import('axios').AxiosResponse} AxiosResponse
+ */
 export default class QueryBuilder
 {
 	/**
@@ -379,7 +382,7 @@ export default class QueryBuilder
 	 * 
 	 * If it finds no items, it returns an empty collection.
 	 * 
-	 * @return {Promise<Collection<Model>>}
+	 * @return {Promise<Collection>}
 	 */
 	async all()
 	{
@@ -404,7 +407,7 @@ export default class QueryBuilder
 	 * When the response is received, it instantiates the results
 	 * as a model or collection and fullfills the returned promise.
 	 * 
-	 * @return {Promise<Model>|Promise<Collection<Model>>}
+	 * @return {Promise<Model>|Promise<Collection>}
 	 */
 	get()
 	{
@@ -430,7 +433,7 @@ export default class QueryBuilder
 	 * It functions similarly to the `$get` method, but it only
 	 * returns the response object.
 	 * 
-	 * @return {Promise<AxiosResponse<any,any>>}
+	 * @return {Promise<Model>|Promise<Collection>}
 	 */
 	$$get()
 	{
@@ -444,7 +447,7 @@ export default class QueryBuilder
 	 * @param {string|number|object} targetPrimaryKeyValueOrPayload a primary key
 	 * value or a plain object as payload
 	 * @param {object=} payload 
-	 * @return {Promise<Model>|Promise<Collection<Model>>}
+	 * @return {Promise<Model>|Promise<Collection>}
 	 */
 	put( targetPrimaryKeyValueOrPayload, payload )
 	{
@@ -465,7 +468,7 @@ export default class QueryBuilder
 	 * @param {string|number|object} primaryKeyValue a primary key value
 	 * or a plain object as payload
 	 * @param {object} payload params to be sent to the resource
-	 * @return {Promise<Model>|Promise<Collection<Model>>}
+	 * @return {Promise<Model>|Promise<Collection>}
 	 */
 	patch( primaryKeyValue, payload )
 	{
@@ -610,12 +613,16 @@ export default class QueryBuilder
 	}
 
 	/**
+	 * @callback RequestMaker
+	 * @return {Promise<AxiosResponse>}
+	 */
+	/**
 	 * Makes requests, triggers events, runs hooks, converts received
 	 * resource to a Model or Collection, and resolves with it.
 	 * 
-	 * @param {function} makeRequest request maker function
-	 * @param {function} afterRequested Method to be run after receiving response
-	 * @return {Promise<Model>|Promise<Collection<Model>>}
+	 * @param {RequestMaker} makeRequest request maker function
+	 * @param {function} afterRequested method to be run after receiving response
+	 * @return {Promise<Model>|Promise<Collection>}
 	 * @emits QueryBuilder#waiting
 	 * @emits QueryBuilder#[StatusCode]
 	 * @emits QueryBuilder#success
@@ -770,7 +777,7 @@ export default class QueryBuilder
 	 * or a collection containing models, depending on the returned
 	 * data format.
 	 * 
-	 * @param {object} response response object
+	 * @param {AxiosResponse} response response object
 	 * @return {Model|Collection<Model>}
 	 */
 	#hydrate( response )
