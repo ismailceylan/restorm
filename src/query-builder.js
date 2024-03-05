@@ -415,7 +415,7 @@ export default class QueryBuilder
 
 	/**
 	 * It functions similarly to the `get` method, but it only
-	 * returns the resource as a plain object.
+	 * resolves the resource as a plain object.
 	 * 
 	 * @return {Promise<object>}
 	 */
@@ -544,7 +544,7 @@ export default class QueryBuilder
 	}
 
 	/**
-	 * @typedef eventListenerOptions
+	 * @typedef EventListenerOptions
 	 * @type {object}
 	 * @property {boolean} append true for append, false for replace mode
 	 * @property {boolean} once true for run the event once or false for
@@ -555,7 +555,7 @@ export default class QueryBuilder
 	 * 
 	 * @param {string} evtName event name
 	 * @param {function} handler event handler
-	 * @param {eventListenerOptions} options options
+	 * @param {EventListenerOptions} options options
 	 * @return {QueryBuilder}
 	 */
 	on( evtName, handler, { append = false, once = false } = {})
