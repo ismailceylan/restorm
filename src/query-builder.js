@@ -401,19 +401,23 @@ export default class QueryBuilder
 	}
 
 	/**
-	 * It compiles the current query, sends a request to the API
-	 * with the `GET` method and returns a promise.
+	 * It compiles the current query, sends a request to the API with 
+	 * the `GET` method and returns a promise.
 	 * 
-	 * When the response is received, it instantiates the results
-	 * as a model or collection and fullfills the returned promise.
+	 * When the response is received, it instantiates the results as a 
+	 * model or collection and fullfills the returned promise.
 	 * 
 	 * @return {Promise<Model>|Promise<Collection>}
 	 */
-	get()
+	async get()
 	{
-		return this.request(() =>
-			this.client.get()
-		);
+		const result = await this.request(
+		{
+			action: () => this.client.get(),
+			hydrate: response => this.#hydrate( response )
+		});
+
+		return result.hydrated;
 	}
 
 	/**
@@ -424,24 +428,26 @@ export default class QueryBuilder
 	 */
 	async $get()
 	{
-		return this.request(
-		{
-			action: () => this.client.get(),
-			hydrate: response => this.#hydrate( response )
-		});
+		const result = await this.request(() =>
+			this.client.get()
+		);
+
+		return result.data;
 	}
 
 	/**
 	 * It functions similarly to the `$get` method, but it only
 	 * returns the response object.
 	 * 
-	 * @return {Promise<Model>|Promise<Collection>}
+	 * @return {Promise<AxiosResponse>}
 	 */
-	$$get()
+	async $$get()
 	{
-		return this.request(() =>
+		const result = await this.request(() =>
 			this.client.get()
 		);
+
+		return result.response;
 	}
 
 	/**
@@ -453,11 +459,15 @@ export default class QueryBuilder
 	 * @param {object=} payload 
 	 * @return {Promise<Model>|Promise<Collection>}
 	 */
-	put( targetPrimaryKeyValueOrPayload, payload )
+	async put( targetPrimaryKeyValueOrPayload, payload )
 	{
-		return this.request(() =>
-			this.client.put( ...arguments )
-		);
+		const result = await this.request(
+		{
+			action: () => this.client.put( ...arguments ),
+			hydrate: response => this.#hydrate( response )
+		});
+
+		return result.hydrated;
 	}
 
 	/**
@@ -474,28 +484,27 @@ export default class QueryBuilder
 	 * @param {object} payload params to be sent to the resource
 	 * @return {Promise<Model>|Promise<Collection>}
 	 */
-	patch( primaryKeyValue, payload )
+	async patch( primaryKeyValue, payload )
 	{
-		return this.request(
+		const result = await this.request(
 		{
 			action: () => this.client.patch( ...arguments ),
+			hydrate: response => this.#hydrate( response ),
 			after: () => this.modelInstance.clean()
 		});
+
+		return result.hydrated;
 	}
 
-	/**
-	 * @callback RequestMaker
-	 * @return {Promise<AxiosResponse>}
-	 */
 	/**
 	 * Makes requests, triggers events, runs hooks, converts received
 	 * resource to a Model or Collection, and resolves with it.
 	 * 
 	 * @param {object} hooks lifecycle methods
-	 * @property {RequestMaker} hooks.action request maker function
+	 * @property {function} hooks.action request maker function
 	 * @property {function} hooks.hydrate hydrate hook
 	 * @property {function} hooks.after method to be run after receiving response
-	 * @return {Promise<array>}
+	 * @return {Promise<{hydrated:Model|Collection,response:AxiosResponse,data:{}|[]}>}
 	 * @emits QueryBuilder#waiting
 	 * @emits QueryBuilder#[StatusCode]
 	 * @emits QueryBuilder#success
@@ -514,20 +523,26 @@ export default class QueryBuilder
 
 		try
 		{
+			const argsToPass = {}
 			const response = await action( this );
-			const argsToPass = [];
 			const events = [ response.status, "success", "finished" ];
 
 			if( hydrate )
 			{
-				argsToPass.push( hydrate( response ));
+				argsToPass[ "hydrated" ] = hydrate( response );
 			}
 
-			argsToPass.push( response );
+			argsToPass[ "response" ] = response;
+			argsToPass[ "data" ] = this.model.$pluck( response.data );
 
 			after && after( this );
 
-			this.trigger( events, argsToPass );
+			this.trigger( events,
+			[
+				argsToPass.hydrated,
+				argsToPass.response,
+				argsToPass.data
+			]);
 
 			return argsToPass;
 		}
@@ -600,7 +615,7 @@ export default class QueryBuilder
 	 */
 	paginate( startPage )
 	{
-		return ( new LengthAwarePaginator( this, startPage ));
+		return new LengthAwarePaginator( this, startPage );
 	}
 
 	/**
@@ -618,8 +633,8 @@ export default class QueryBuilder
 	/**
 	 * @typedef EventListenerOptions
 	 * @type {object}
-	 * @property {boolean} append true for append, false for replace mode
-	 * @property {boolean} once true for run the event once or false for
+	 * @property {boolean} [append=true] true for append, false for replace mode
+	 * @property {boolean} [once=false] true for run the event once or false for
 	 * keep it persistent
 	 */
 	/**
