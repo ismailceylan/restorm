@@ -401,8 +401,8 @@ export default class QueryBuilder
 	}
 
 	/**
-	 * It compiles the current query, sends a request 
-	 * to the API with the `GET` method and returns a promise.
+	 * It compiles the current query, sends a request to the API
+	 * with the `GET` method and returns a promise.
 	 * 
 	 * When the response is received, it instantiates the results
 	 * as a model or collection and fullfills the returned promise.
@@ -411,10 +411,9 @@ export default class QueryBuilder
 	 */
 	get()
 	{
-		return this.request(
-		{
-			action: () => this.client.get()
-		});
+		return this.request(() =>
+			this.client.get()
+		);
 	}
 
 	/**
@@ -425,9 +424,11 @@ export default class QueryBuilder
 	 */
 	async $get()
 	{
-		return this.model.$pluck(
-			( await this.client.get()).data
-		);
+		return this.request(
+		{
+			action: () => this.client.get(),
+			hydrate: response => this.#hydrate( response )
+		});
 	}
 
 	/**
@@ -438,7 +439,9 @@ export default class QueryBuilder
 	 */
 	$$get()
 	{
-		return this.client.get();
+		return this.request(() =>
+			this.client.get()
+		);
 	}
 
 	/**
@@ -452,10 +455,9 @@ export default class QueryBuilder
 	 */
 	put( targetPrimaryKeyValueOrPayload, payload )
 	{
-		return this.request(
-		{
-			action: () => this.client.put( ...arguments )
-		});
+		return this.request(() =>
+			this.client.put( ...arguments )
+		);
 	}
 
 	/**
@@ -491,8 +493,9 @@ export default class QueryBuilder
 	 * 
 	 * @param {object} hooks lifecycle methods
 	 * @property {RequestMaker} hooks.action request maker function
+	 * @property {function} hooks.hydrate hydrate hook
 	 * @property {function} hooks.after method to be run after receiving response
-	 * @return {Promise<Model>|Promise<Collection>}
+	 * @return {Promise<array>}
 	 * @emits QueryBuilder#waiting
 	 * @emits QueryBuilder#[StatusCode]
 	 * @emits QueryBuilder#success
@@ -500,29 +503,40 @@ export default class QueryBuilder
 	 * @emits QueryBuilder#failed
 	 * @emits QueryBuilder#finished
 	 */
-	async request({ action, after } = {})
+	async request({ action, hydrate, after } = {})
 	{
+		if( typeof( arguments[ 0 ]) == "function" )
+		{
+			action = arguments[ 0 ];
+		}
+
 		this.trigger( "waiting", [ this ]);
 
 		try
 		{
 			const response = await action( this );
-			const result = this.#hydrate( response );
-			const argsToPass = [ result, response, this ];
+			const argsToPass = [];
 			const events = [ response.status, "success", "finished" ];
+
+			if( hydrate )
+			{
+				argsToPass.push( hydrate( response ));
+			}
+
+			argsToPass.push( response );
 
 			after && after( this );
 
 			this.trigger( events, argsToPass );
 
-			return result;
+			return argsToPass;
 		}
 		catch( err )
 		{
 			if( err?.name == 'AxiosError' )
 			{
 				const events = [ err.response.status, "failed", "finished" ];
-				const argsToPass = [ err, this ];
+				const argsToPass = [ err ];
 	
 				this.trigger( events, argsToPass );
 			}
