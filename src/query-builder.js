@@ -411,9 +411,10 @@ export default class QueryBuilder
 	 */
 	get()
 	{
-		return this.request(() =>
-			this.client.get()
-		);
+		return this.request(
+		{
+			action: () => this.client.get()
+		});
 	}
 
 	/**
@@ -451,9 +452,10 @@ export default class QueryBuilder
 	 */
 	put( targetPrimaryKeyValueOrPayload, payload )
 	{
-		return this.request(() =>
-			this.client.put( ...arguments )
-		);
+		return this.request(
+		{
+			action: () => this.client.put( ...arguments )
+		});
 	}
 
 	/**
@@ -473,9 +475,62 @@ export default class QueryBuilder
 	patch( primaryKeyValue, payload )
 	{
 		return this.request(
-			() => this.client.patch( ...arguments ),
-			() => this.modelInstance.clean()
-		);
+		{
+			action: () => this.client.patch( ...arguments ),
+			after: () => this.modelInstance.clean()
+		});
+	}
+
+	/**
+	 * @callback RequestMaker
+	 * @return {Promise<AxiosResponse>}
+	 */
+	/**
+	 * Makes requests, triggers events, runs hooks, converts received
+	 * resource to a Model or Collection, and resolves with it.
+	 * 
+	 * @param {object} hooks lifecycle methods
+	 * @property {RequestMaker} hooks.action request maker function
+	 * @property {function} hooks.after method to be run after receiving response
+	 * @return {Promise<Model>|Promise<Collection>}
+	 * @emits QueryBuilder#waiting
+	 * @emits QueryBuilder#[StatusCode]
+	 * @emits QueryBuilder#success
+	 * @emits QueryBuilder#finished
+	 * @emits QueryBuilder#failed
+	 * @emits QueryBuilder#finished
+	 */
+	async request({ action, after } = {})
+	{
+		this.trigger( "waiting", [ this ]);
+
+		try
+		{
+			const response = await action( this );
+			const result = this.#hydrate( response );
+			const argsToPass = [ result, response, this ];
+			const events = [ response.status, "success", "finished" ];
+
+			after && after( this );
+
+			this.trigger( events, argsToPass );
+
+			return result;
+		}
+		catch( err )
+		{
+			if( err?.name == 'AxiosError' )
+			{
+				const events = [ err.response.status, "failed", "finished" ];
+				const argsToPass = [ err, this ];
+	
+				this.trigger( events, argsToPass );
+			}
+			else
+			{
+				throw err;
+			}
+		}
 	}
 
 	/**
@@ -610,57 +665,6 @@ export default class QueryBuilder
 		}
 
 		return this;
-	}
-
-	/**
-	 * @callback RequestMaker
-	 * @return {Promise<AxiosResponse>}
-	 */
-	/**
-	 * Makes requests, triggers events, runs hooks, converts received
-	 * resource to a Model or Collection, and resolves with it.
-	 * 
-	 * @param {RequestMaker} makeRequest request maker function
-	 * @param {function} afterRequested method to be run after receiving response
-	 * @return {Promise<Model>|Promise<Collection>}
-	 * @emits QueryBuilder#waiting
-	 * @emits QueryBuilder#[StatusCode]
-	 * @emits QueryBuilder#success
-	 * @emits QueryBuilder#finished
-	 * @emits QueryBuilder#failed
-	 * @emits QueryBuilder#finished
-	 */
-	async request( makeRequest, afterRequested )
-	{
-		this.trigger( "waiting", [ this ]);
-
-		try
-		{
-			const response = await makeRequest();
-			const result = this.#hydrate( response );
-			const argsToPass = [ result, response, this ];
-			const events = [ response.status, "success", "finished" ];
-
-			afterRequested && afterRequested();
-
-			this.trigger( events, argsToPass );
-
-			return result;
-		}
-		catch( err )
-		{
-			if( err?.name == 'AxiosError' )
-			{
-				const events = [ err.response.status, "failed", "finished" ];
-				const argsToPass = [ err, this ];
-	
-				this.trigger( events, argsToPass );
-			}
-			else
-			{
-				throw err;
-			}
-		}
 	}
 
 	/**
