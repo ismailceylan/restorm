@@ -690,6 +690,36 @@ export default class QueryBuilder
 	}
 
 	/**
+	 * It executes all event listener methods registered for the
+	 * given named event by passing the given argument list.
+	 * 
+	 * @param {string|array} evtNames event name(s)
+	 * @param {array} args arguments to pass event listener
+	 * @return {QueryBuilder}
+	 */
+	trigger( evtNames, args = [])
+	{
+		if( Array.isArray( evtNames ))
+		{
+			return evtNames.forEach( evt =>
+				this.trigger( evt, args )
+			);
+		}
+
+		( this.events[ evtNames ] || []).forEach(( handler, i ) =>
+		{
+			handler.call( this, ...args );
+
+			if( handler[ symOnce ])
+			{
+				this.events[ evtNames ].splice( i, 1 );
+			}
+		});
+
+		return this;
+	}
+
+	/**
 	 * It stores a method that will perform cast operations on a
 	 * given field of the resource.
 	 * 
@@ -725,36 +755,6 @@ export default class QueryBuilder
 	cancel()
 	{
 		this.client.cancel();
-	}
-
-	/**
-	 * It executes all event listener methods registered for the
-	 * given named event by passing the given argument list.
-	 * 
-	 * @param {string|array} evtNames event name(s)
-	 * @param {array} args arguments to pass event listener
-	 * @return {QueryBuilder}
-	 */
-	trigger( evtNames, args = [])
-	{
-		if( Array.isArray( evtNames ))
-		{
-			return evtNames.forEach( evt =>
-				this.trigger( evt, args )
-			);
-		}
-
-		( this.events[ evtNames ] || []).forEach(( handler, i ) =>
-		{
-			handler.call( this, ...args );
-
-			if( handler[ symOnce ])
-			{
-				this.events[ evtNames ].splice( i, 1 );
-			}
-		});
-
-		return this;
 	}
 
 	/**
