@@ -52,13 +52,15 @@ export default class LengthAwarePaginator extends Collection
 	 */
 	ping()
 	{
+		const once = { once: true }
+
 		this.builder
-			.on( 204, () => this.data = [])
+			.on( 204, () => this.data = [], once )
 			.on( 200, ({ data }, response ) =>
 			{
 				this.data = data;
 				this.response = response;
-			})
+			}, once )
 			.get();
 
 		return this;
