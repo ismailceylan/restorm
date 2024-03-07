@@ -1,15 +1,7 @@
-import Collection from "./collection";
-import QueryBuilder from "./query-builder";
+import { Page, Collection, QueryBuilder } from ".";
 
 export default class LengthAwarePaginator extends Collection
 {
-	/**
-	 * Start page number.
-	 * 
-	 * @type {number}
-	 */
-	startPage = 1;
-
 	/**
 	 * QueryBuilder instance.
 	 * 
@@ -25,6 +17,13 @@ export default class LengthAwarePaginator extends Collection
 	response = null;
 
 	/**
+	 * Pagination metadata interface.
+	 * 
+	 * @type {Page}
+	 */
+	page = new Page;
+
+	/**
 	 * Instantiate length aware paginator.
 	 * 
 	 * @param {QueryBuilder} builder query builder instance
@@ -35,11 +34,10 @@ export default class LengthAwarePaginator extends Collection
 		super();
 
 		this.builder = builder;
-		this.startPage = startPage;
 
 		builder
 			.params({ paginate: "length-aware" })
-			.page( startPage );
+			.page( this.page.currentPage || startPage );
 
 		this.ping();
 	}
@@ -56,10 +54,12 @@ export default class LengthAwarePaginator extends Collection
 
 		this.builder
 			.on( 204, () => this.data = [], once )
-			.on( 200, ({ data }, response ) =>
+			.on( 200, ( collection, response, data ) =>
 			{
-				this.data = data;
+				this.data = collection.data;
 				this.response = response;
+				this.#hydrateMeta( response.data );
+				this.builder.trigger( "paginated", [ this, response, data ]);
 			}, once )
 			.get();
 
@@ -73,7 +73,20 @@ export default class LengthAwarePaginator extends Collection
 	 */
 	async next()
 	{
-		this.builder.page( ++this.startPage );
-		return this.ping();
+		if( this.page.end )
+		{
+			return this;
+		}
+
+		this.builder.page( this.page.currentPage + 1 );
+		this.ping();
+
+		return this;
+	}
+
+	#hydrateMeta( responseBody )
+	{
+		this.page = new Page;		
+		this.builder.model.$pluckPaginations( responseBody, this.page );
 	}
 }

@@ -594,6 +594,24 @@ export default class Model
 	}
 
 	/**
+	 * It receives a plain object representing a resource and pagination
+	 * metadata and should extract the metadata from it and return it.
+	 * 
+	 * Specific models should override this method to ensure that
+	 * their scenarios are applied to obtain the actual resource
+	 * from the response data.
+	 * 
+	 * @static
+	 * @param {object} responseBody a plain object holds a resource and
+	 * pagination metadata
+	 * @return {object}
+	 */
+	static $pluckPaginations( responseBody )
+	{
+		return responseBody;
+	}
+
+	/**
 	 * Creates and returns a QueryBuilder instance.
 	 * 
 	 * @param {Model=} modelInstance 
