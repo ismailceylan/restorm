@@ -103,6 +103,29 @@ export default class QueryBuilder
 	}
 
 	/**
+	 * Resets the builder except events, casts etc.
+	 * 
+	 * @return {QueryBuilder}
+	 */
+	reset()
+	{
+		const cleanInstance = new QueryBuilder( this.model, this.modelInstance );
+
+		const targets = [
+			"orderBys", "wheres", "withs", "selects",
+			"currentPage", "currentLimit", "additionalParams",
+			"temporaryResource"
+		];
+
+		for( const target of targets )
+		{
+			this[ target ] = cleanInstance[ target ];
+		}
+
+		return this;
+	}
+
+	/**
 	 * It sets the field names that are desired to be included
 	 * in the represented resource.
 	 * 
