@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/ismailceylan/restorm/compare/v1.2.0...v1.3.0) (2024-03-08)
+
+
+### Features
+
+* **paginator:** support pagination metadata ([503ee54](https://github.com/ismailceylan/restorm/commit/503ee54dbb835f372b829c1f422ecd6681fa79ba))
+* **query-builder:** add reset method ([4583b2b](https://github.com/ismailceylan/restorm/commit/4583b2b1bcc85c7f536b436739b320d954609958))
+
+
+### Bug Fixes
+
+* **collection:** abandon private field usage ([2cda5f2](https://github.com/ismailceylan/restorm/commit/2cda5f25bab04a05ff5e6e8d4fe7595494ded80f))
+* **collection:** handle toStringTag requests by  proxy ([29a2797](https://github.com/ismailceylan/restorm/commit/29a2797ada210dbfce695554b08a9899ab62a5ac))
+* **paginator:** clear overlapping event listeners of ping method ([b0694ac](https://github.com/ismailceylan/restorm/commit/b0694aca08865f5cb0660b15e736f848a23688c4))
+
 ## [1.2.0](https://github.com/ismailceylan/restorm/compare/v1.1.0...v1.2.0) (2024-02-24)
 
 
