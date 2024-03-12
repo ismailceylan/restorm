@@ -37,19 +37,16 @@ export default class User extends BaseModel
 ```
 
 # Building the Query
-After preparing your models, we can create RESTful requests with them.
+After preparing our models, we can create RESTful requests with them.
 
 ## Retreiving a List of Resources
-The 'all' method returns a promise.
+The `all` method returns a promise.
 
-Upon the request being fulfilled, the list of resources sent by the server is instantiated with the Post model. These instances are then placed into a collection, which is filled into the awaiting promise."
+Upon the request being fulfilled, the list of resources sent by the server is instantiated with the Post model. These instances are then placed into a collection, which is filled into the awaiting promise.
 
 ```js
 const posts = await Post.all();
-```
-
-```wget
-GET /api/v1.0/posts
+// GET /api/v1.0/posts
 ```
 
 ## Retrieving a Single Resource
@@ -59,25 +56,19 @@ There are two main methods that enable us to obtain a single resource.
 * `find` - Find a specific resource based on the primary key.
 
 ### Getting the First Resource
-The `first` method creates a request to the root directory of resources with filtering criteria, and it requests the first item of the first page of the results found. Which makes it a specific type of `get` method.
+The `first` method creates a request to the root directory of resources with filtering criteria, and it requests the first item of the first page of the results found.
 
 The returned promise is fulfilled with an instance created from the Post model.
 
 ```js
 const mostViewedPost = await Post.orderBy( "views", "desc" ).first();
-```
-
-```wget
-GET /api/v1.0/posts?sort[views]=desc&page=1&limit=1
+// GET /api/v1.0/posts?sort[views]=desc&page=1&limit=1
 ```
 
 ### Finding a Specific Resource
-The `find` method creates a request to access a resource under the root directory of resources using its primary key value.
+The `find` method creates a request to access a resource under the root directory of resources using a primary key.
 
 ```js
 const post = await Post.find( 1 );
-```
-
-```wget
-GET /api/v1.0/posts/1
+// GET /api/v1.0/posts/1
 ```
