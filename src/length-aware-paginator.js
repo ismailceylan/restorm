@@ -24,6 +24,13 @@ export default class LengthAwarePaginator extends Collection
 	page = new Page;
 
 	/**
+	 * Request state.
+	 * 
+	 * @type {boolean}
+	 */
+	isPending = false;
+
+	/**
 	 * Instantiate length aware paginator.
 	 * 
 	 * @param {QueryBuilder} builder query builder instance
@@ -52,7 +59,10 @@ export default class LengthAwarePaginator extends Collection
 	{
 		const once = { once: true }
 
+		this.isPending = true;
+
 		this.builder
+			.on( "finished", () => this.isPending = false )
 			.on( 204, () => this.data = [], once )
 			.on( 200, ( collection, response, data ) =>
 			{
@@ -73,7 +83,7 @@ export default class LengthAwarePaginator extends Collection
 	 */
 	async next()
 	{
-		if( this.page.end )
+		if( this.page.end || this.isPending )
 		{
 			return this;
 		}
