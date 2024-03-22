@@ -477,7 +477,7 @@ export default class Model
 	 * @param {string} resource temporary resource
 	 * @return {QueryBuilder}
 	 */
-	static resource( resource )
+	static setResource( resource )
 	{
 		return this.createBuilder().resource( resource );
 	}
