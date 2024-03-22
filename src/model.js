@@ -709,11 +709,6 @@ export default class Model
 		return this;
 	}
 
-	save()
-	{
-
-	}
-
 	/**
 	 * It checks whether the given field name is in the original data.
 	 * 
