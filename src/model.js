@@ -408,7 +408,18 @@ export default class Model
 	 * #### Example Usage
 	 * ```js
 	 * const post = await Post.find( 101 );
-	 * post.patch({ foo: "bar" });
+	 * 
+	 * post.foo = "bar";
+	 * post.moo = "zoo";
+	 * post.patch();
+	 * 
+	 * // or shortly
+	 * 
+	 * post.patch(
+	 * {
+	 *     foo: "bar",
+	 *     moo: "zoo"
+	 * });
 	 * ```
 	 * 
 	 * @param {object} payload params to be sent to the resource
