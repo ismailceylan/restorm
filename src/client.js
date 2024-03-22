@@ -34,7 +34,7 @@ export default class Client
 	{
 		this.abortController.abort();
 		this.abortController = new AbortController();
-		this.query.trigger( "canceled", [ this ]);
+		this.query.trigger([ "canceled", "finished" ], [ this ]);
 	}
 
 	/**
