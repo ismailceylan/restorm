@@ -419,9 +419,10 @@ export default class Model
 		const query = this.constructor.createBuilder( this );
 
 		return query.request(
-			() => query.client.patch( payload ),
-			() => this.clean()
-		);
+		{
+			action: () => query.client.patch( payload || this.modified ),
+			after: () => this.clean( payload || this.modified)
+		});
 	}
 
 	/**
