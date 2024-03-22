@@ -732,14 +732,16 @@ export default class Model
 
 	/**
 	 * Moves changed field values over original values.
+	 * 
+	 * @param {object} payload
 	 */
-	clean()
+	clean( payload )
 	{
-		for( const key in this.modified )
+		for( const key in payload )
 		{
-			this.original[ key ] = this.modified[ key ];
+			this.original[ key ] = payload[ key ];
 
-			delete this.modified[ key ];
+			delete payload[ key ];
 		}
 
 		this.isDirty = false;
