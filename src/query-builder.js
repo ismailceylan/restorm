@@ -571,7 +571,7 @@ export default class QueryBuilder
 		}
 		catch( err )
 		{
-			if( err?.name == 'AxiosError' )
+			if( err?.name == "AxiosError" )
 			{
 				const events = [ err.response.status, "failed", "finished" ];
 				const argsToPass = [ err ];
