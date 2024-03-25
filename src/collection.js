@@ -31,16 +31,6 @@ export default class Collection
 	}
 
 	/**
-	 * Changes the list of data that the collection will represent.
-	 * 
-	 * @param {array} data new data list
-	 */
-	set data( data )
-	{
-		this.data = data;
-	}
-
-	/**
 	 * Returns first item of the collection.
 	 * 
 	 * @return {*}
