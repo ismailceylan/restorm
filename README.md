@@ -46,7 +46,10 @@ Upon the request being fulfilled, the list of resources sent by the server is in
 
 ```js
 const posts = await Post.all();
-// GET /api/v1.0/posts
+```
+
+```
+GET /api/v1.0/posts
 ```
 
 ## Retrieving a Single Resource
@@ -61,8 +64,11 @@ The `first` method creates a request to the root directory of resources with fil
 The returned promise is fulfilled with an instance created from the Post model.
 
 ```js
-const mostViewedPost = await Post.orderBy( "views", "desc" ).first();
-// GET /api/v1.0/posts?sort[views]=desc&page=1&limit=1
+const firstPost = await Post.first();
+```
+
+```
+GET /api/v1.0/posts?page=1&limit=1
 ```
 
 ### Finding a Specific Resource
@@ -70,5 +76,64 @@ The `find` method creates a request to access a resource under the root director
 
 ```js
 const post = await Post.find( 1 );
-// GET /api/v1.0/posts/1
+```
+
+```
+GET /api/v1.0/posts/1
+```
+
+## Filtering Resources
+To list specific resources, we add filters with `where` method to accomplish this.
+
+It can be used in 3 possible scenarios. Let's examine them now.
+
+### Filtering Resource
+We can use it like this when making direct filters on the represented resource:
+
+```js
+const posts = Post.where( "type", "article" ).get();
+```
+
+```
+GET /api/v1.0/posts?filter[type]=article
+```
+
+### Filtering Related Resource
+Restorm may request the inclusion of another resource associated with the resources it will receive. We'll see this later.
+
+If the associated resource is multiple (i.e., one-to-many), we can also indirectly add filters to these sub-resources.
+
+```js
+const posts = Post
+	.where( "type", "article" )
+	.where( "comments.state", "approved" )
+	// or
+	.where([ "comments", "state" ], "approved" )
+	.get();
+```
+
+```
+GET /api/v1.0/posts?filter[type]=article&filter[comments.state]=approved
+```
+
+### Object Syntax
+We can perform these operations in a more organized and concise manner through object syntax, providing a cleaner and more streamlined usage.
+
+```js
+Post.where(
+{
+    type: "article",
+    "comments.state": "approved"
+    // or
+    [ relationName + "." + fieldName ]: "approved",
+    // or
+    comments:
+    {
+        state: "approved"
+    },
+});
+```
+
+```
+GET /api/v1.0/posts?filter[type]=article&filter[comments.state]=approved
 ```
