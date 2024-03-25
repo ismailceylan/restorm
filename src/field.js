@@ -14,13 +14,11 @@ export default class Field
 	 */
 	constructor( field )
 	{
-		if( typeof( field ) == "string" )
+		this.field = field;
+
+		if( typeof field == "string" )
 		{
 			this.field = field.split( "." );
-		}
-		else
-		{
-			this.field = field;
 		}
 	}
 
