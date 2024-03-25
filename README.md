@@ -91,7 +91,7 @@ It can be used in 3 possible scenarios. Let's examine them now.
 We can use it like this when making direct filters on the represented resource:
 
 ```js
-const posts = Post.where( "type", "article" ).get();
+const posts = await Post.where( "type", "article" ).get();
 ```
 
 ```
@@ -104,7 +104,7 @@ Restorm may request the inclusion of another resource associated with the resour
 If the associated resource is multiple (i.e., one-to-many), we can also indirectly add filters to these sub-resources.
 
 ```js
-const posts = Post
+const posts = await Post
 	.where( "type", "article" )
 	.where( "comments.state", "approved" )
 	// or
@@ -120,20 +120,43 @@ GET /api/v1.0/posts?filter[type]=article&filter[comments.state]=approved
 We can perform these operations in a more organized and concise manner through object syntax, providing a cleaner and more streamlined usage.
 
 ```js
-Post.where(
+const conditions =
 {
-    type: "article",
-    "comments.state": "approved"
-    // or
-    [ relationName + "." + fieldName ]: "approved",
-    // or
-    comments:
-    {
-        state: "approved"
-    },
-});
+	type: "article",
+	"comments.state": "approved"
+	// or
+	[ relationName + "." + fieldName ]: "approved",
+	// or
+	comments:
+	{
+		state: "approved"
+	},
+}
+
+const posts = await Post.where( conditions ).get();
 ```
 
 ```
 GET /api/v1.0/posts?filter[type]=article&filter[comments.state]=approved
+```
+
+### Multiple Values
+We can also add multiple values for a filter.
+
+```js
+const posts = await Post.where( "type", [ "article", "news" ]).get();
+```
+
+```
+GET /api/v1.0/posts?filter[type]=article,news
+```
+
+We didn't add a separate `whereIn` method because the `where` method is flexible enough to handle it on its own.
+
+```js
+const posts = await Post.where( "id", [ 1, 2, 3 ]).get();
+```
+    
+```
+GET /api/v1.0/posts?filter[id]=1,2,3
 ```
