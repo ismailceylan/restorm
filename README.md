@@ -85,9 +85,6 @@ GET /api/v1.0/posts/1
 ## Filtering Resources
 To list specific resources, we add filters with `where` method to accomplish this.
 
-It can be used in 3 possible scenarios. Let's examine them now.
-
-### Filtering Resource
 We can directly filter represented resources by models:
 
 ```js
@@ -166,7 +163,7 @@ GET /api/v1.0/posts?filter[id]=4,8,15
 ## Sorting Resources
 The `orderBy` method is used to obtain results sorted by a specific field of resource.
 
-### Sorting Resource
+We can directly subject a model to sorting like this:
 
 ```js
 const posts = await Post.orderBy( "updated_at", "desc" ).get();
@@ -176,24 +173,108 @@ const posts = await Post.orderBy( "updated_at", "desc" ).get();
 GET /api/v1.0/posts?sort[updated_at]=desc
 ```
 
-### Sorting Related Resources
+We may also want to sort on two different fields simultaneously.
+
 ```js
-Post.orderBy( "comments.id", "desc" );
-// or
-Post.orderBy([ "comments", "id" ], "desc" );
+const posts = await Post
+	.orderBy( "updated_at", "asc" )
+	.orderBy( "created_at", "desc" )
+	.get();
 ```
-### Object Syntax
+
+```
+GET /api/v1.0/posts?sort[updated_at]=asc&sort[created_at]=desc
+```
+
+### Sorting Related Resources
+We can also subject the associated model to the sorting process.
+
 ```js
-Post.orderBy(
+const posts = await Post
+	.orderBy( "comments.id", "desc" );
+	// or
+	.orderBy([ "comments", "id" ], "desc" );
+	.all();
+```
+
+```
+GET /api/v1.0/posts?sort[comments.id]=desc
+```
+
+### Object Syntax
+We can use object syntax to organize sorting operations. This approach is more concise and organized and for example, if we are using something like vue.js or react.js, we can manage sorting operations on reactive objects and directly pass this object to the `orderBy` method.
+
+```js
+const sorting =
 {
-   updated_at: "desc",
-   created_at: "asc",
-   "comments.id": "desc",
-   [ relationName + "." + fieldName ]: "desc",
-   // or
-   comments:
-   {
-      id: "desc"
-   }
-});
+	updated_at: "desc",
+	created_at: "asc",
+	"comments.id": "desc",
+	// or
+	[ relationName + "." + fieldName ]: "desc",
+	// or
+	comments:
+	{
+		id: "desc"
+	}
+}
+
+const posts = await Post.orderBy( sorting ).get();
+```
+
+```
+GET /api/v1.0/posts?sort[updated_at]=desc&sort[created_at]=asc&sort[comments.id]=desc
+```
+
+## Including Relationships
+The `with` method is used to include related resource to a model. This process is known as eager loading. We can provide as many relationship names as arguments to the method or as an array.
+
+We can directly include a related resource by its model:
+
+```js
+const posts = await Post
+	.with( "comments", "author" )
+	// or
+	.with([ "comments", "author" ])
+	.all();
+```
+
+```
+GET /api/v1.0/posts?with=comments,author
+```
+
+### Including Nested Relationships
+We can even include nested relationships. That means we can include the related resources of the related resources and so on.
+
+```js
+const posts = await Post
+	.with( "comments.author" )
+	.all();
+```
+
+```
+GET /api/v1.0/posts?with=comments.author
+```
+
+Server should return the following response:
+
+```json
+[
+	{
+		"id": 1,
+		"post": "lorem ipsum",
+		"comments":
+		[
+		    {
+		        "id": 1,
+		        "comment": "lorem ipsum",
+		        "author":
+		        {
+		            "id": 1,
+		            "name": "John Doe"
+		        }
+		    }
+		]
+	}
+]
 ```
