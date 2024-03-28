@@ -529,15 +529,10 @@ export default class QueryBuilder
 	 * @property {function} hooks.after method to be run after receiving response
 	 * @return {Promise<{hydrated:Model|Collection,response:AxiosResponse,data:{}|[]}>}
 	 * @emits QueryBuilder#waiting
-	 * @emits QueryBuilder#[StatusCode]
-	 * @emits QueryBuilder#success
-	 * @emits QueryBuilder#finished
-	 * @emits QueryBuilder#failed
-	 * @emits QueryBuilder#finished
 	 */
 	async request({ action, hydrate, after } = {})
 	{
-		if( typeof( arguments[ 0 ]) == "function" )
+		if( typeof arguments[ 0 ] == "function" )
 		{
 			action = arguments[ 0 ];
 		}
@@ -546,42 +541,95 @@ export default class QueryBuilder
 
 		try
 		{
-			const argsToPass = {}
-			const response = await action( this );
-			const events = [ response.status, "success", "finished" ];
-
-			if( hydrate )
-			{
-				argsToPass[ "hydrated" ] = hydrate( response );
-			}
-
-			argsToPass[ "response" ] = response;
-			argsToPass[ "data" ] = this.model.$pluck( response.data );
-
-			after && after( this );
-
-			this.trigger( events,
-			[
-				argsToPass.hydrated,
-				argsToPass.response,
-				argsToPass.data
-			]);
-
-			return argsToPass;
+			return this.handleResponse(
+				await action( this ),
+				hydrate,
+				after
+			);
 		}
 		catch( err )
 		{
-			if( err?.name == "AxiosError" )
+			return this.handleErrors( err, after );
+		}
+	}
+
+	/**
+	 * It handles the response and triggers the appropriate events.
+	 * 
+	 * @param {AxiosResponse<any,any>} response response object
+	 * @param {function} hydrate hydrate hook
+	 * @param {function} after method to be run after receiving response
+	 * @return {{hydrated:Model|Collection,response:AxiosResponse,data:{}|[]}
+	 * @emits QueryBuilder#[StatusCode]
+	 * @emits QueryBuilder#success
+	 * @emits QueryBuilder#finished
+	 */
+	handleResponse( response, hydrate, after )
+	{
+		const args = {}
+		const events = [ response.status, "success", "finished" ];
+
+		if( hydrate )
+		{
+			args.hydrated = hydrate( response );
+		}
+
+		if( after )
+		{
+			after( this );
+		}
+
+		args.response = response;
+		args.data = this.model.$pluck( response.data );
+
+		this.trigger( events, Object.values( args ));
+
+		return args;
+	}
+
+	/**
+	 * It handles the errors and triggers the appropriate events.
+	 * 
+	 * @param {Error} err error object
+	 * @param {function} after method to be run after receiving response
+	 * @return {Error}
+	 * @throws {Error}
+	 * @emits QueryBuilder#failed
+	 * @emits QueryBuilder#network-error
+	 * @emits QueryBuilder#finished
+	 */
+	handleErrors( err, after )
+	{
+		const args = [];
+		const events = [];
+
+		if( after )
+		{
+			after( this );
+		}
+
+		if( err.isAxiosError )
+		{
+			args.push( err );
+
+			if( err.code == "ERR_NETWORK" )
 			{
-				const events = [ err.response.status, "failed", "finished" ];
-				const argsToPass = [ err ];
-	
-				this.trigger( events, argsToPass );
+				events.push( "network-error" );
 			}
 			else
 			{
-				throw err;
+				events.push( err.response.status );
 			}
+
+			events.push( "failed", "finished" );
+
+			this.trigger( events, args );
+
+			return err;
+		}
+		else
+		{
+			throw err;
 		}
 	}
 
