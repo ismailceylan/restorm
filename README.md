@@ -59,7 +59,7 @@ There are two main methods that enable us to obtain a single resource.
 * `find` - Find a specific resource based on the primary key.
 
 ### Getting the First Resource
-The `first` method creates a request to the root directory of resources with filtering criteria, and it requests the first item of the first page of the results found.
+The `first` method creates a request to the root directory of resources with filtering criteria, and it requests the first item of the results found.
 
 The returned promise is fulfilled with an instance created from the Post model.
 
@@ -102,6 +102,7 @@ If the related resource is multiple (i.e., one-to-many), we can also indirectly 
 
 ```js
 const posts = await Post
+	.with( "comments" )
 	.where( "type", "article" )
 	.where( "comments.state", "approved" )
 	// or
@@ -110,7 +111,7 @@ const posts = await Post
 ```
 
 ```
-GET /api/v1.0/posts?filter[type]=article&filter[comments.state]=approved
+GET /api/v1.0/posts?with=comments&filter[type]=article&filter[comments.state]=approved
 ```
 
 ### Object Syntax
@@ -130,11 +131,11 @@ const conditions =
 	},
 }
 
-const posts = await Post.where( conditions ).get();
+const posts = await Post.with( "comments" ).where( conditions ).get();
 ```
 
 ```
-GET /api/v1.0/posts?filter[type]=article&filter[comments.state]=approved
+GET /api/v1.0/posts?with=comments&filter[type]=article&filter[comments.state]=approved
 ```
 
 ### Multiple Values
@@ -187,18 +188,21 @@ GET /api/v1.0/posts?sort[updated_at]=asc&sort[created_at]=desc
 ```
 
 ### Sorting Related Resources
-We can also subject the associated model to the sorting process.
+We can also subject the related model to the sorting process.
 
 ```js
 const posts = await Post
+	.with( "comments.replies" )
 	.orderBy( "comments.id", "desc" );
-	// or
+	// or with array syntax
 	.orderBy([ "comments", "id" ], "desc" );
+	// or we can go further and sort on nested relationships
+	.orderBy( "comments.replies.created_at", "desc" );
 	.all();
 ```
 
 ```
-GET /api/v1.0/posts?sort[comments.id]=desc
+GET /api/v1.0/posts?with=comments.replies&sort[comments.id]=desc&sort[comments.replies.created_at]=desc
 ```
 
 ### Object Syntax
@@ -219,11 +223,11 @@ const sorting =
 	}
 }
 
-const posts = await Post.orderBy( sorting ).get();
+const posts = await Post.with( "comments" ).orderBy( sorting ).get();
 ```
 
 ```
-GET /api/v1.0/posts?sort[updated_at]=desc&sort[created_at]=asc&sort[comments.id]=desc
+GET /api/v1.0/posts?with=comments&sort[updated_at]=desc&sort[created_at]=asc&sort[comments.id]=desc
 ```
 
 ## Including Relationships
@@ -243,26 +247,31 @@ const posts = await Post
 GET /api/v1.0/posts?with=comments,author
 ```
 
+With that, the API endpoint will return the posts with their comments and authors.
+
 ### Including Nested Relationships
-We can even include nested relationships. That means we can include the related resources of the related resources and so on.
+Even including nested relationships is possible. That means we can include the related resources of the related resources and so on.
 
 ```js
-const posts = await Post
-	.with( "comments.author" )
-	.all();
+const posts = await Post.with( "author", "comments.author" ).all();
 ```
 
 ```
-GET /api/v1.0/posts?with=comments.author
+GET /api/v1.0/posts?with=author,comments.author
 ```
 
-Server should return the following response:
+The API endpoint should return the following response:
 
 ```json
 [
 	{
 		"id": 1,
 		"post": "lorem ipsum",
+		"author":
+		{
+		    "id": 1,
+		    "name": "John Doe"
+		},
 		"comments":
 		[
 		    {
@@ -271,10 +280,109 @@ Server should return the following response:
 		        "author":
 		        {
 		            "id": 1,
-		            "name": "John Doe"
+		            "name": "Jane Doe"
 		        }
 		    }
 		]
 	}
 ]
 ```
+
+This time the posts doesn't have authors, but the comments do.
+
+## Selecting Fields
+The `select` method is used to select specific fields from the model. 
+
+We can directly select fields from the model like this:
+
+```js
+const posts = await Post.select([ "id", "title", "author_id" ]).get();
+```
+
+```
+GET /api/v1.0/posts?field[]=id,title,author_id
+```
+
+### Selecting Related Resource Fields
+We can also select fields from the related resources.
+
+```js
+const posts = Post
+	.select( "comments", [ "id", "author_id", "comment" ])
+	.select([ "comments", "author" ], [ "id", "username" ])
+	.get();
+```
+
+```
+GET /api/v1.0/posts?field[comments]=id,author_id,comment&field[comments.author]=id,username
+```
+
+### Object Syntax
+We can use object syntax to organize field selection operations. To select fields from the model, we should define an empty key and provide an array of fields as the value.
+
+```js
+const selections =
+{
+    // resource fields
+    "": [ "id", "title", "author_id" ],
+    // related resource fields
+    comments: [ "id", "author_id", "comment" ],
+    // deeply related resource fields
+    "comments.author": [ "id", "username" ]
+}
+
+const posts = Post.select( selections ).all();
+```
+
+```
+GET /api/v1.0/posts?field[]=id,title,author_id&field[comments]=id,post_id,author,comment&field[comments.reactions]=comment_id,reaction
+```
+
+## Pagination
+Pagination is a process of dividing a large set of data into smaller and more manageable chunks. Restorm provides basic and advanced pagination support.
+
+### Basic Pagination
+We can accomplish this process manually by using the `page` and `limit` methods.
+
+The `page` method is used to specify the page number. The `limit` method is used to specify the number of items per page.
+
+So, let's see how we can use these methods.
+
+#### Page
+The `page` method is used to specify the page number.
+
+```js
+const posts = await Post.page( 2 ).get();
+```
+
+```
+GET /api/v1.0/posts?page=2
+```
+
+#### Limit
+The `limit` method is used to specify the number of items per page.
+
+```js
+const posts = await Post.limit( 10 ).get();
+```
+
+```
+GET /api/v1.0/posts?limit=10
+```
+
+If the limit value that we are gonna use is will be same most of the time then we can define it in the model instead of using the `limit` method every time.
+
+```js
+class Post extends BaseModel
+{
+	limit = 10;
+}
+
+const posts = await Post.get();
+```
+
+```
+GET /api/v1.0/posts?limit=10
+```
+
+This query would give us the first 10 posts.
