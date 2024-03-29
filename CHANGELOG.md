@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.1](https://github.com/ismailceylan/restorm/compare/v1.3.0...v1.3.1) (2024-03-29)
+
+
+### Bug Fixes
+
+* **model:** add missed lifecycle hook names ([6bdde87](https://github.com/ismailceylan/restorm/commit/6bdde87f17a14ebb7217d8aac5c2379dae8065e3))
+* **model:** resource name conflict ([3aa16e9](https://github.com/ismailceylan/restorm/commit/3aa16e968c1e5c4f1b002930680c1ee6e69d8e7d))
+* **paginator:** add a lock mechanism to prevent pinging during ongoing requests ([00c68d6](https://github.com/ismailceylan/restorm/commit/00c68d659a66c37cd55ceac4d424fbe34c06dc88))
+
 ## [1.3.0](https://github.com/ismailceylan/restorm/compare/v1.2.0...v1.3.0) (2024-03-08)
 
 
