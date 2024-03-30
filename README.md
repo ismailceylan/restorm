@@ -455,5 +455,33 @@ Rest APIs can provide various types of pagination metadata. The `Page` class nor
 
 We achieve this by defining a static method called `$pluckPaginations` on the model. Restorm invokes this method by passing the body of the response sent by the Rest API and the `Page` instance through the argument tunnel. We should then use these objects to ensure the necessary distribution.
 
-For example, while our post data may be provided through Django, our user data may be powered by Laravel. In this case, we can define the mentioned function separately in the `Post` class and the `User` class. If all our data is being fed by the same framework, we can write it once in the `BaseModel`.
+For example, while our post data may be provided through Django, our user data may be powered by Laravel. In those kind of cases, we can define the mentioned function separately in the `Post` class and the `User` class. Otherwise if all our data is being fed by the same framework, we can write it once in the `BaseModel`.
 
+```js
+// models/base-model.js
+import { Model } from "restorm";
+
+class BaseModel extends Model
+{
+	static $pluckPaginations( responseBody, page )
+	{
+		page.currentPage = responseBody.current_page;
+		page.lastPage = responseBody.last_page;
+		page.perPage = responseBody.per_page;
+		page.total = responseBody.total;
+		page.from = responseBody.from;
+		page.to = responseBody.to;
+	}
+}
+```
+
+#### Querying Next Page
+Paginators allows us to query the next page of resources that we are currently working on. We can do this by calling the `next` method on the paginator instance.
+
+There is no need to track the current page number, as Restorm will handle this for us.
+
+Additionally, Restorm keeps track of whether requests have been completed or not. When the `next` method is called, if there is still a pending request awaiting response, the call is ignored. We don't need to deal with such matters.
+
+```js
+paginator.next();
+```
