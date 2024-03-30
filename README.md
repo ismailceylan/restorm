@@ -115,7 +115,7 @@ GET /api/v1.0/posts?with=comments&filter[type]=article&filter[comments.state]=ap
 ```
 
 ### Object Syntax
-We can perform these operations in a more organized and concise manner through object syntax, providing a cleaner and more streamlined usage.
+We can perform these operations in a more organized and concise manner through object syntax, providing a cleaner and more streamlined usage. For example, if we are using something like vue.js or react.js, we can manage sorting operations on reactive objects and directly pass this object to the `where` method.
 
 ```js
 const conditions =
@@ -206,7 +206,7 @@ GET /api/v1.0/posts?with=comments.replies&sort[comments.id]=desc&sort[comments.r
 ```
 
 ### Object Syntax
-We can use object syntax to organize sorting operations. This approach is more concise and organized and for example, if we are using something like vue.js or react.js, we can manage sorting operations on reactive objects and directly pass this object to the `orderBy` method.
+We can use object syntax to organize sorting operations.
 
 ```js
 const sorting =
@@ -288,12 +288,8 @@ The API endpoint should return the following response:
 ]
 ```
 
-This time the posts doesn't have authors, but the comments do.
-
 ## Selecting Fields
 The `select` method is used to select specific fields from the model. 
-
-We can directly select fields from the model like this:
 
 ```js
 const posts = await Post.select([ "id", "title", "author_id" ]).get();
@@ -304,12 +300,14 @@ GET /api/v1.0/posts?field[]=id,title,author_id
 ```
 
 ### Selecting Related Resource Fields
-We can also select fields from the related resources.
+We can also select fields from the related resources. First argument of the `select` method is the name of the related resource. We can provide relation name as a string with dot notation or as an array and the field names should be provided as an array.
 
 ```js
 const posts = Post
 	.select( "comments", [ "id", "author_id", "comment" ])
 	.select([ "comments", "author" ], [ "id", "username" ])
+	// or
+	.select( "comments.author", [ "id", "username" ])
 	.get();
 ```
 
@@ -335,16 +333,14 @@ const posts = Post.select( selections ).all();
 ```
 
 ```
-GET /api/v1.0/posts?field[]=id,title,author_id&field[comments]=id,post_id,author,comment&field[comments.reactions]=comment_id,reaction
+GET /api/v1.0/posts?field[]=id,title,author_id&field[comments]=id,author_id,comment&field[comments.author]=id,username
 ```
 
 ## Pagination
 Pagination is a process of dividing a large set of data into smaller and more manageable chunks. Restorm provides basic and advanced pagination support.
 
 ### Basic Pagination
-We can accomplish this process manually by using the `page` and `limit` methods.
-
-The `page` method is used to specify the page number. The `limit` method is used to specify the number of items per page.
+We can accomplish this process manually by using the `page` and `limit` methods. With two of these methods, we can get the desired paginated results.
 
 So, let's see how we can use these methods.
 
@@ -370,7 +366,7 @@ const posts = await Post.limit( 10 ).get();
 GET /api/v1.0/posts?limit=10
 ```
 
-If the limit value that we are gonna use is will be same most of the time then we can define it in the model instead of using the `limit` method every time.
+If the limit value we are going to use is the same most of the time, we can define it in the model instead of using the `limit` method every time.
 
 ```js
 class Post extends BaseModel
@@ -386,3 +382,78 @@ GET /api/v1.0/posts?limit=10
 ```
 
 This query would give us the first 10 posts.
+
+### Advanced Pagination
+The `paginate` method can handle the pagination process that we have been doing manually and adds some extra features to it.
+
+This method returns a `LengthAwarePaginator` instance which it extends our `Collection` class. That makes it an advanced collection that can be used to get the total number of items, current page, items per page, total number of pages, request the next page with ease and of course get the items. We will see soon what collections can do.
+
+```js
+const paginator = await Post.paginate();
+```
+
+```
+GET /api/v1.0/posts?limit=10&page=1&paginate=length-aware
+```
+
+#### Pagination Metadata
+The `LengthAwarePaginator` has a property named `page` which holds a `Page` instance. If the Rest API has included pagination metadata in its responses, this information is abstracted with the `Page` class, and we can access it through the paginator.
+
+Let's now explore what these useful pagination information are.
+
+##### Current Page
+The `currentPage` property holds the current page number.
+
+```js
+const { currentPage } = paginator.page;
+```
+
+##### From
+The `from` property holds the starting item number.
+
+```js
+const { from } = paginator.page;
+```
+
+##### Last Page
+The `lastPage` property holds the last page number.
+
+```js
+const { lastPage } = paginator.page;
+```
+
+##### Per Page
+The `perPage` property holds the number of items per page.
+
+```js
+const { perPage } = paginator.page;
+```
+
+##### To
+The `to` property holds the ending item number.
+
+```js
+const { to } = paginator.page;
+```
+
+##### Total
+The `total` property holds the total number of items.
+
+```js
+const { total } = paginator.page;
+```
+
+##### End
+The `end` property is a flag that indicates if the pagination is at the end and there are no more items to be fetched.
+
+```js
+const { end } = paginator.page;
+```
+
+#### Normalizing Metadata
+Rest APIs can provide various types of pagination metadata. The `Page` class normalizes this metadata into a consistent format, but we need to specify which information corresponds to which attribute and distribute them properly.
+
+We achieve this by defining a static method called `$pluckPaginations` on the model. Restorm invokes this method by passing the body of the response sent by the Rest API and the `Page` instance through the argument tunnel. We should then use these objects to ensure the necessary distribution.
+
+For example, while our post data may be provided through Django, our user data may be powered by Laravel. In this case, we can define the mentioned function separately in the `Post` class and the `User` class. If all our data is being fed by the same framework, we can write it once in the `BaseModel`.
+
