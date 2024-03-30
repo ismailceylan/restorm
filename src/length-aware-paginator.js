@@ -81,7 +81,7 @@ export default class LengthAwarePaginator extends Collection
 	 * 
 	 * @return {LengthAwarePaginator}
 	 */
-	async next()
+	next()
 	{
 		if( this.page.end || this.isPending )
 		{
