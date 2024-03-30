@@ -62,7 +62,7 @@ export default class LengthAwarePaginator extends Collection
 		this.isPending = true;
 
 		this.builder
-			.on( "finished", () => this.isPending = false )
+			.on( "finished", () => this.isPending = false, once )
 			.on( 204, () => this.data = [], once )
 			.on( 200, ( collection, response, data ) =>
 			{
