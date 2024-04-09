@@ -695,7 +695,7 @@ export default class QueryBuilder
 	 * @param {...array} resources temporary resource
 	 * @return {QueryBuilder}
 	 */
-	setResource( ...resources )
+	from( ...resources )
 	{
 		const endpoint = [];
 
