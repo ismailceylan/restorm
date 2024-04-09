@@ -58,15 +58,15 @@ export default class Model
 	isDirty = false;
 
 	/**
-	 * Instantiates the model with the given data.
+	 * Returns the value of the primary key whose name is defined
+	 * on the model.
 	 * 
-	 * @param {object} properties original data of the model
-	 * @param {object} casts additional casting map to apply the model
-	 * when data retreived
+	 * @readonly
+	 * @return {string}
 	 */
-	constructor( properties = {}, casts = {})
+	get primary()
 	{
-		this.init( properties, casts );
+		return this.original[ this.constructor.primaryKey ];
 	}
 
 	/**
@@ -353,28 +353,6 @@ export default class Model
 	}
 
 	/**
-	 * Sends the given payload with `PUT` request to the represented
-	 * model's resource.
-	 * 
-	 * #### Example Usage
-	 * ```js
-	 * const post = await Post.find( 101 );
-	 * post.put({ foo: "bar" });
-	 * ```
-	 * 
-	 * @param {object} payload params to be sent to the resource
-	 * @return {Promise<Model>|Promise<Collection<Model>>}
-	 */
-	put( payload )
-	{
-		const query = this.constructor.createBuilder( this );
-
-		return query.request(() =>
-			query.client.put( payload )
-		);
-	}
-
-	/**
 	 * Sends the given payload with `PATCH` request to the represented
 	 * model's resource.
 	 * 
@@ -399,41 +377,6 @@ export default class Model
 			() => query.client.patch( ...arguments ),
 			() => this.clean()
 		);
-	}
-
-	/**
-	 * Sends the given payload with `PATCH` request to the represented
-	 * model's resource.
-	 * 
-	 * #### Example Usage
-	 * ```js
-	 * const post = await Post.find( 101 );
-	 * 
-	 * post.foo = "bar";
-	 * post.moo = "zoo";
-	 * post.patch();
-	 * 
-	 * // or shortly
-	 * 
-	 * post.patch(
-	 * {
-	 *     foo: "bar",
-	 *     moo: "zoo"
-	 * });
-	 * ```
-	 * 
-	 * @param {object} payload params to be sent to the resource
-	 * @return {Promise<Model>|Promise<Collection<Model>>}
-	 */
-	patch( payload )
-	{
-		const query = this.constructor.createBuilder( this );
-
-		return query.request(
-		{
-			action: () => query.client.patch( payload || this.modified ),
-			after: () => this.clean( payload || this.modified)
-		});
 	}
 
 	/**
@@ -477,9 +420,9 @@ export default class Model
 	 * @param {[string|Model]} resources temporary resource
 	 * @return {QueryBuilder}
 	 */
-	static setResource( ...resources )
+	static from( ...resources )
 	{
-		return this.createBuilder().setResource( ...resources );
+		return this.createBuilder().from( ...resources );
 	}
 
 	/**
@@ -505,21 +448,6 @@ export default class Model
 	}
 
 	/**
-	 * Registers a new event listener.
-	 * 
-	 * @param {string} evtName event name
-	 * @param {function} handler event handler
-	 * @param {eventListenerOptions} options options
-	 * @return {QueryBuilder}
-	 */
-	on( evtName, handler, { append = true, once = false } = {})
-	{
-		return this.constructor
-			.createBuilder( this )
-			.on( evtName, handler, { append, once });
-	}
-
-	/**
 	 * It stores a method that will perform cast operations on a
 	 * given field of the resource.
 	 * 
@@ -534,57 +462,6 @@ export default class Model
 	static cast( fieldNameOrFieldsObj, castHandle, payload = [])
 	{
 		return this.createBuilder().cast( ...arguments );
-	}
-
-	/**
-	 * It stores a method that will perform cast operations on a
-	 * given field of the resource.
-	 * 
-	 * When each get request is completed, the stored methods are
-	 * executed by taking the field values they are associated with.
-	 * 
-	 * @param {string|object} fieldNameOrFieldsObj field name or fields object
-	 * @param {function} castHandle cast implementer
-	 * @param {array} payload additional arguments to push cast implementer's arguments
-	 * @return {QueryBuilder}
-	 */
-	cast( fieldNameOrFieldsObj, castHandle, payload = [])
-	{
-		return this.constructor
-			.createBuilder( this )
-			.cast( ...arguments );
-	}
-
-	/**
-	 * Runs handlers from the given cast stack on the represented
-	 * resource data.
-	 * 
-	 * @param {object} casts field: handler for casting
-	 */
-	#applyCasts( casts )
-	{
-		for( const key in casts )
-		{
-			const cast = casts[ key ];;
-			let handle, payload;
-
-			if( typeof( casts[ key ]) == "function" )
-			{
-				handle = cast;
-				payload = [];
-			}
-			else
-			{
-				handle = cast.handle;
-				payload = cast.payload || [];
-			}
-
-			this.original[ key ] = handle(
-				this.original[ key ],
-				this.original,
-				...payload
-			);
-		}
 	}
 
 	/**
@@ -695,6 +572,18 @@ export default class Model
 	}
 
 	/**
+	 * Instantiates the model with the given data.
+	 * 
+	 * @param {object} properties original data of the model
+	 * @param {object} casts additional casting map to apply the model
+	 * when data retreived
+	 */
+	constructor( properties = {}, casts = {})
+	{
+		this.init( properties, casts );
+	}
+
+	/**
 	 * Initializes model with data and casting map.
 	 * 
 	 * @param {object} properties original properties
@@ -710,6 +599,63 @@ export default class Model
 	}
 
 	/**
+	 * Sends the given payload with `PUT` request to the represented
+	 * model's resource.
+	 * 
+	 * #### Example Usage
+	 * ```js
+	 * const post = await Post.find( 101 );
+	 * post.put({ foo: "bar" });
+	 * ```
+	 * 
+	 * @param {object} payload params to be sent to the resource
+	 * @return {Promise<Model>|Promise<Collection<Model>>}
+	 */
+	put( payload )
+	{
+		const query = this.constructor.createBuilder( this );
+
+		return query.request(() =>
+			query.client.put( payload )
+		);
+	}
+
+	/**
+	 * Sends the given payload with `PATCH` request to the represented
+	 * model's resource.
+	 * 
+	 * #### Example Usage
+	 * ```js
+	 * const post = await Post.find( 101 );
+	 * 
+	 * post.foo = "bar";
+	 * post.moo = "zoo";
+	 * post.patch();
+	 * 
+	 * // or shortly
+	 * 
+	 * post.patch(
+	 * {
+	 *     foo: "bar",
+	 *     moo: "zoo"
+	 * });
+	 * ```
+	 * 
+	 * @param {object} payload params to be sent to the resource
+	 * @return {Promise<Model>|Promise<Collection<Model>>}
+	 */
+	patch( payload )
+	{
+		const query = this.constructor.createBuilder( this );
+
+		return query.request(
+		{
+			action: () => query.client.patch( payload || this.modified ),
+			after: () => this.clean( payload || this.modified)
+		});
+	}
+
+	/**
 	 * It checks whether the given field name is in the original data.
 	 * 
 	 * @param {string} key name of the field to check
@@ -718,6 +664,72 @@ export default class Model
 	has( key )
 	{
 		return key in this.original;
+	}
+
+	/**
+	 * Registers a new event listener.
+	 * 
+	 * @param {string} evtName event name
+	 * @param {function} handler event handler
+	 * @param {eventListenerOptions} options options
+	 * @return {QueryBuilder}
+	 */
+	on( evtName, handler, { append = true, once = false } = {})
+	{
+		return this.constructor
+			.createBuilder( this )
+			.on( evtName, handler, { append, once });
+	}
+
+	/**
+	 * It stores a method that will perform cast operations on a
+	 * given field of the resource.
+	 * 
+	 * When each get request is completed, the stored methods are
+	 * executed by taking the field values they are associated with.
+	 * 
+	 * @param {string|object} fieldNameOrFieldsObj field name or fields object
+	 * @param {function} castHandle cast implementer
+	 * @param {array} payload additional arguments to push cast implementer's arguments
+	 * @return {QueryBuilder}
+	 */
+	cast( fieldNameOrFieldsObj, castHandle, payload = [])
+	{
+		return this.constructor
+			.createBuilder( this )
+			.cast( ...arguments );
+	}
+
+	/**
+	 * Runs handlers from the given cast stack on the represented
+	 * resource data.
+	 * 
+	 * @param {object} casts field: handler for casting
+	 */
+	#applyCasts( casts )
+	{
+		for( const key in casts )
+		{
+			const cast = casts[ key ];;
+			let handle, payload;
+
+			if( typeof( casts[ key ]) == "function" )
+			{
+				handle = cast;
+				payload = [];
+			}
+			else
+			{
+				handle = cast.handle;
+				payload = cast.payload || [];
+			}
+
+			this.original[ key ] = handle(
+				this.original[ key ],
+				this.original,
+				...payload
+			);
+		}
 	}
 
 	/**
@@ -745,18 +757,6 @@ export default class Model
 		}
 
 		this.isDirty = false;
-	}
-
-	/**
-	 * Returns the value of the primary key whose name is defined
-	 * on the model.
-	 * 
-	 * @readonly
-	 * @return {string}
-	 */
-	get primary()
-	{
-		return this.original[ this.constructor.primaryKey ];
 	}
 }
 
