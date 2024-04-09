@@ -12,7 +12,7 @@ To install Restorm, you can use npm:
 npm install restorm
 ```
 
-## Vue
+# Initialization
 
 Set up on `src/models`.
 
@@ -455,7 +455,7 @@ Rest APIs can provide various types of pagination metadata. The `Page` class nor
 
 We achieve this by defining a static method called `$pluckPaginations` on the model. Restorm invokes this method by passing the body of the response sent by the Rest API and the `Page` instance through the argument tunnel. We should then use these objects to ensure the necessary distribution.
 
-For example, while our post data may be provided through Django, our user data may be powered by Laravel. In those kind of cases, we can define the mentioned function separately in the `Post` class and the `User` class. Otherwise if all our data is being fed by the same framework, we can write it once in the `BaseModel`.
+For example, while our post data may be provided through Django, our user data may be powered by Laravel. In those kind of cases, we can define the mentioned function separately in the `Post` model and the `User` model. Otherwise if all our data is being fed by the same framework, we can write it once in the `BaseModel`.
 
 ```js
 // models/base-model.js
@@ -484,4 +484,66 @@ Additionally, Restorm keeps track of whether requests have been completed or not
 
 ```js
 paginator.next();
+```
+
+## Conditional Queries
+Sometimes, we might want to add a constraint to our query. To do this, we can use the `when` method. The first argument is a boolean expression, and the second is a callback function. The callback will receive query builder instance and the condition flag's value as arguments.
+
+```js
+function getUserId()
+{
+	if( something )
+	{
+		return 481516;
+	}
+	else
+	{
+		return null;
+	}
+}
+
+const posts = await Post
+	.when( getUserId(), ( query, userId ) =>
+		query.where( "author_id", userId )
+	)
+	.get();
+```
+
+```
+GET /api/v1.0/posts?filter[author_id]=481516
+```
+
+You have to be careful with falsy values. For example, if you pass `0` as a user ID, it will be considered as `false`, and the query will not be executed.
+
+## Additional Params
+Sometimes, we might want to pass additional parameters to the query that restorm doesn't pass explicitly.
+
+To do this, we can use the `params` method. It accepts an object of additional parameters. We should pass all the parameters that we want to pass to the query at once.
+
+```js
+const params =
+{
+	foo: "bar",
+	do: true,
+	some: [ "good", "bad", "ugly" ]
+}
+
+const posts = await Post.params( params ).get();
+```
+
+```
+GET /api/v1.0/posts?foo=bar&do=true&some=good,bad,ugly
+```
+
+## Custom Resource
+If we want to use a custom resource, we can do it by using the `resource` method.
+
+With this method, we can bypass the current resource defined on the model and create requests to a custom resource temporarily.
+
+```js
+const posts = await Post.resource( "timeline" ).all();
+```
+
+```
+GET /api/v1.0/timeline
 ```
