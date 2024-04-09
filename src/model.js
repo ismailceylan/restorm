@@ -474,12 +474,12 @@ export default class Model
 	/**
 	 * Sets represented model's endpoint to a temporary value.
 	 * 
-	 * @param {string} resource temporary resource
+	 * @param {[string|Model]} resources temporary resource
 	 * @return {QueryBuilder}
 	 */
-	static setResource( resource )
+	static setResource( ...resources )
 	{
-		return this.createBuilder().resource( resource );
+		return this.createBuilder().setResource( ...resources );
 	}
 
 	/**

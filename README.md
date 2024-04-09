@@ -513,7 +513,7 @@ const posts = await Post
 GET /api/v1.0/posts?filter[author_id]=481516
 ```
 
-You have to be careful with falsy values. For example, if you pass `0` as a user ID, it will be considered as `false`, and the query will not be executed.
+You have to be careful with falsy values. For example, if you pass `0` as an user ID, it will be considered as `false`, and the query will not be executed.
 
 ## Additional Params
 Sometimes, we might want to pass additional parameters to the query that restorm doesn't pass explicitly.
@@ -536,14 +536,29 @@ GET /api/v1.0/posts?foo=bar&do=true&some=good,bad,ugly
 ```
 
 ## Custom Resource
-If we want to use a custom resource, we can do it by using the `resource` method.
+If we want to use a custom resource, we can do it by using the `setResource` method.
 
 With this method, we can bypass the current resource defined on the model and create requests to a custom resource temporarily.
 
+### Static Resource
+We can specify the resource name directly as a string.
+
 ```js
-const posts = await Post.resource( "timeline" ).all();
+const posts = await Post.setResource( "timeline" ).all();
 ```
 
 ```
 GET /api/v1.0/timeline
+```
+
+### Model Aware Custom Resource
+Sometimes, we might want to build dynamic resources depending on some model instances that we have already.
+
+```js
+const post = new Post({ id: 1432 });
+const comments = await Post.setResource( post, "comments" ).all();
+```
+
+```
+GET /api/v1.0/posts/1432/comments
 ```

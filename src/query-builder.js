@@ -68,7 +68,7 @@ export default class QueryBuilder
 	 * 
 	 * @type {string}
 	 */
-	temporaryResource = null;
+	resource = null;
 
 	/**
 	 * Event listeners.
@@ -111,10 +111,10 @@ export default class QueryBuilder
 	{
 		const cleanInstance = new QueryBuilder( this.model, this.modelInstance );
 
-		const targets = [
+		const targets =
+		[
 			"orderBys", "wheres", "withs", "selects",
 			"currentPage", "currentLimit", "additionalParams",
-			"temporaryResource"
 		];
 
 		for( const target of targets )
@@ -692,13 +692,40 @@ export default class QueryBuilder
 	/**
 	 * Sets represented model's endpoint to a temporary value.
 	 * 
-	 * @param {string} resource temporary resource
+	 * @param {...array} resources temporary resource
 	 * @return {QueryBuilder}
 	 */
-	resource( resource )
+	setResource( ...resources )
 	{
-		this.temporaryResource = resource;
+		const endpoint = [];
+
+		for( const item of resources )
+		{
+			if( item instanceof Model )
+			{
+				endpoint.push( item.constructor.resource, item.primary );
+			}
+			else
+			{
+				endpoint.push( item );
+			}
+		}
+
+		this.resource = endpoint.join( "/" );
+
 		return this;
+	}
+
+	/**
+	 * Returns a resource endpoint value for the represented
+	 * model, including the one temporarily assigned by the
+	 * `QueryBuilder.resource` method.
+	 * 
+	 * @return {string}
+	 */
+	getResource()
+	{
+		return this.resource || this.model.resource;
 	}
 
 	/**
@@ -803,27 +830,6 @@ export default class QueryBuilder
 	cancel()
 	{
 		this.client.cancel();
-	}
-
-	/**
-	 * Returns a resource endpoint value for the represented
-	 * model, including the one temporarily assigned by the
-	 * `QueryBuilder.resource` method.
-	 * 
-	 * @return {string}
-	 */
-	getResource()
-	{
-		if( this.temporaryResource )
-		{
-			const rs = this.temporaryResource;
-			
-			this.temporaryResource = null;
-			
-			return rs;
-		}
-
-		return this.model.resource;
 	}
 
 	/**
