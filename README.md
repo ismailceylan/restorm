@@ -1,18 +1,18 @@
-# Introduction
+# INTRODUCTION
 Restorm is a lightweight JavaScript library designed to streamline the process of handling RESTful services within client-side applications. With Restorm, we can easily model data on the client side and interact with RESTful APIs by adhering to predefined rules and conventions.
 
-This library simplifies the communication process between the client and server, abstracting away the complexities of HTTP requests and allowing developers to focus on building robust, scalable applications. Whether you're fetching data, creating new resources, or updating existing ones, Restorm provides a seamless interface for performing CRUD operations while ensuring compliance with RESTful principles.
+This library simplifies the communication process between the client and server, abstracting away the complexities of HTTP requests and allowing developers to focus on building robust, scalable applications. Whether you're fetching data, creating new resources, or updating existing ones, Restorm provides a well known interface for performing CRUD operations while ensuring compliance with RESTful principles.
 
 With its intuitive design and flexible configuration options, Restorm empowers developers to efficiently integrate RESTful services into their JavaScript applications, enhancing productivity and promoting best practices in web development.
 
-# Installation
+# INSTALLATION
 To install Restorm, you can use npm:
 
 ```
 npm install restorm
 ```
 
-# Initialization
+# INITIALIZATION
 
 Set up on `src/models`.
 
@@ -36,7 +36,7 @@ export default class Post extends BaseModel
 }
 ```
 
-# Building the Query
+# BUILDING THE QUERY
 After preparing our models, we can create RESTful requests with them.
 
 ## Retreiving a List of Resources
@@ -536,7 +536,7 @@ GET /api/v1.0/posts?foo=bar&do=true&some=good,bad,ugly
 ```
 
 ## Custom Resource
-If we want to use a custom resource, we can do it by using the `setResource` method.
+If we want to use a custom resource, we can do it by using the `from` method.
 
 With this method, we can bypass the current resource defined on the model and create requests to a custom resource temporarily.
 
@@ -544,7 +544,7 @@ With this method, we can bypass the current resource defined on the model and cr
 We can specify the resource name directly as a string.
 
 ```js
-const posts = await Post.setResource( "timeline" ).all();
+const posts = await Post.from( "timeline" ).all();
 ```
 
 ```
@@ -552,13 +552,42 @@ GET /api/v1.0/timeline
 ```
 
 ### Model Aware Custom Resource
-Sometimes, we might want to build dynamic resources depending on some model instances that we have already.
+Sometimes, we might want to build dynamic resource URIs depending on some model instances that we have already.
 
 ```js
-const post = new Post({ id: 1432 });
-const comments = await Post.setResource( post, "comments" ).all();
+const post = new Post({ id: 48 });
+const comment = new Comment({ id: 4815, post_id: post.id });
+const reactions = await Post.from( post, comment, "reactions" ).all();
 ```
 
 ```
-GET /api/v1.0/posts/1432/comments
+GET /api/v1.0/posts/48/comments/4815/reactions
 ```
+
+# CRUD OPERATIONS
+Restorm provides a set of methods that allow us to perform CRUD operations on RESTful resources, and we have seen above how to handle the `(R)ead` side by `get`, `all`, `find`, `first` methods.
+
+So let's see how to perform `(C)reate`, `(U)pdate` and `(D)elete` operations.
+
+## Create
+On Http protocol, creation is done by sending a `POST` or some cases `PUT` request to the RESTful endpoints.
+
+```js
+const newPost = new Post(
+{
+	title: "Elon Musk went to the Moon instead Mars",
+	content: "Yeah! You heard right, he did just like that! Unbelievable."
+});
+
+newPost.save();
+// or
+newPost.post();
+```
+
+```
+POST /api/v1.0/posts
+```
+
+The `post` method is very self-explanatory, it just sends a `POST` request to the resource endpoint but the `save` method has something magical behind it.
+
+If the primary key is not set, it will send a `POST` request to the resource endpoint, otherwise it will send a `PUT` request. That means it can handle creation and updating of resources.
