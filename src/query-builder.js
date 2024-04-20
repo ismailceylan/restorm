@@ -663,7 +663,7 @@ export default class QueryBuilder
 	async find( primary )
 	{
 		const result = await this
-			.resource( this.model.resource + "/" + primary )
+			.from( this.model.resource + "/" + primary )
 			.page( null )
 			.limit( null )
 			.get();
