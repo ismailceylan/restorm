@@ -572,6 +572,17 @@ export default class Model
 	}
 
 	/**
+	 * Checks if the given instance is an instance of the model.
+	 * 
+	 * @param {any} instance
+	 * @return {boolean}
+	 */
+	static [ Symbol.hasInstance ]( instance )
+	{
+		return this instanceof instance.constructor;
+	}
+
+	/**
 	 * Instantiates the model with the given data.
 	 * 
 	 * @param {object} properties original data of the model
