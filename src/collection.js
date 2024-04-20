@@ -1,5 +1,8 @@
 import { Model } from ".";
 
+/**
+ * Represents a list of data.
+ */
 export default class Collection
 {
 	/**
