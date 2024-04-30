@@ -1,24 +1,24 @@
-# INTRODUCTION
+# Introduction
 Restorm is a lightweight JavaScript library designed to streamline the process of handling RESTful services within client-side applications. With Restorm, we can easily model data on the client side and interact with RESTful APIs by adhering to predefined rules and conventions.
 
 This library simplifies the communication process between the client and server, abstracting away the complexities of HTTP requests and allowing developers to focus on building robust, scalable applications. Whether you're fetching data, creating new resources, or updating existing ones, Restorm provides a well known interface for performing CRUD operations while ensuring compliance with RESTful principles.
 
 With its intuitive design and flexible configuration options, Restorm empowers developers to efficiently integrate RESTful services into their JavaScript applications, enhancing productivity and promoting best practices in web development.
 
-# INSTALLATION
+# Installation
 To install Restorm, you can use npm:
 
 ```
-npm install restorm
+npm install @iceylan/restorm
 ```
 
-# INITIALIZATION
+# Initialization
 
 Set up on `src/models`.
 
 ```js
 // base-model.js
-import { Model } from "restorm";
+import { Model } from "@iceylan/restorm";
 
 export default class BaseModel extends Model
 {
@@ -36,13 +36,19 @@ export default class Post extends BaseModel
 }
 ```
 
-# BUILDING THE QUERY
+# Building The Query
 After preparing our models, we can create RESTful requests with them.
 
 ## Retreiving a List of Resources
-The `all` method returns a promise.
+The `all` method creates a request to access all resources under the root directory of endpoint.
 
-Upon the request being fulfilled, the list of resources sent by the server is instantiated with the `Post` model. These instances are then placed into a `collection`, which is filled into the awaiting promise.
+It will make sure that even the response has only one resource, the resolved promise will be fulfilled with a collection and that collection will be filled with instances of the model.
+
+If the response is empty, the promise will be fulfilled with an empty collection.
+
+If the endpoint is kind of a single resource returner, we can use `get` or `first` methods either to get it. The `get` will autodetect the returned resource type and return an instance of the `model` or `collection` of models. The `first` method will return an instance of the model.
+
+We will see how to use those methods in the next sections.
 
 ```js
 const posts = await Post.all();
@@ -82,6 +88,64 @@ const post = await Post.find( 1 );
 GET /api/v1.0/posts/1
 ```
 
+## Including Relationships
+The `with` method is used to include related resource to a model. This process is known as eager loading. We can provide as many relationship names as arguments to the method or as an array.
+
+We can directly include a related resource by its model:
+
+```js
+const posts = await Post
+	.with( "comments", "author" )
+	// or
+	.with([ "comments", "author" ])
+	.all();
+```
+
+```
+GET /api/v1.0/posts?with=comments,author
+```
+
+With that, the API endpoint will return the posts with their comments and authors.
+
+### Including Nested Relationships
+Even including nested relationships is possible. That means we can include the related resources of the related resources and so on.
+
+```js
+const posts = await Post.with( "author", "comments.author" ).all();
+```
+
+```
+GET /api/v1.0/posts?with=author,comments.author
+```
+
+The API endpoint should return the following response:
+
+```json
+[
+	{
+		"id": 1,
+		"post": "lorem ipsum",
+		"author":
+		{
+		    "id": 1,
+		    "name": "John Doe"
+		},
+		"comments":
+		[
+		    {
+		        "id": 1,
+		        "comment": "lorem ipsum",
+		        "author":
+		        {
+		            "id": 1,
+		            "name": "Jane Doe"
+		        }
+		    }
+		]
+	}
+]
+```
+
 ## Filtering Resources
 To list specific resources, we add filters with `where` method to accomplish this.
 
@@ -96,9 +160,7 @@ GET /api/v1.0/posts?filter[type]=article
 ```
 
 ### Filtering Related Resource
-Restorm may request the inclusion of another resource related with the resources it will receive. We'll see this later.
-
-If the related resource is multiple (i.e., one-to-many), we can also indirectly add filters to these sub-resources.
+If the related resource is in multiple manner (i.e., one-to-many), we can also indirectly add filters to these sub-resources to reduce the returned results.
 
 ```js
 const posts = await Post
@@ -115,7 +177,7 @@ GET /api/v1.0/posts?with=comments&filter[type]=article&filter[comments.state]=ap
 ```
 
 ### Object Syntax
-We can perform these operations in a more organized and concise manner through object syntax, providing a cleaner and more streamlined usage. For example, if we are using something like vue.js or react.js, we can manage sorting operations on reactive objects and directly pass this object to the `where` method.
+We can perform these operations in a more organized and concise manner through object syntax, providing a cleaner and more streamlined usage. For example, if we are using something like vue.js or react.js, we can manage operations on reactive objects and directly pass this object to the `where` method.
 
 ```js
 const conditions =
@@ -230,64 +292,6 @@ const posts = await Post.with( "comments" ).orderBy( sorting ).get();
 GET /api/v1.0/posts?with=comments&sort[updated_at]=desc&sort[created_at]=asc&sort[comments.id]=desc
 ```
 
-## Including Relationships
-The `with` method is used to include related resource to a model. This process is known as eager loading. We can provide as many relationship names as arguments to the method or as an array.
-
-We can directly include a related resource by its model:
-
-```js
-const posts = await Post
-	.with( "comments", "author" )
-	// or
-	.with([ "comments", "author" ])
-	.all();
-```
-
-```
-GET /api/v1.0/posts?with=comments,author
-```
-
-With that, the API endpoint will return the posts with their comments and authors.
-
-### Including Nested Relationships
-Even including nested relationships is possible. That means we can include the related resources of the related resources and so on.
-
-```js
-const posts = await Post.with( "author", "comments.author" ).all();
-```
-
-```
-GET /api/v1.0/posts?with=author,comments.author
-```
-
-The API endpoint should return the following response:
-
-```json
-[
-	{
-		"id": 1,
-		"post": "lorem ipsum",
-		"author":
-		{
-		    "id": 1,
-		    "name": "John Doe"
-		},
-		"comments":
-		[
-		    {
-		        "id": 1,
-		        "comment": "lorem ipsum",
-		        "author":
-		        {
-		            "id": 1,
-		            "name": "Jane Doe"
-		        }
-		    }
-		]
-	}
-]
-```
-
 ## Selecting Fields
 The `select` method is used to select specific fields from the model. 
 
@@ -316,7 +320,7 @@ GET /api/v1.0/posts?field[comments]=id,author_id,comment&field[comments.author]=
 ```
 
 ### Object Syntax
-We can use object syntax to organize field selection operations. To select fields from the model, we should define an empty key and provide an array of fields as the value.
+We can use object syntax to organize field selection operations. To select fields directly from the model, we should define an empty key or relation name as a key and provide an array of fields to selected as the value.
 
 ```js
 const selections =
@@ -371,7 +375,7 @@ If the limit value we are going to use is the same most of the time, we can defi
 ```js
 class Post extends BaseModel
 {
-	limit = 10;
+	itemsPerPage = 10;
 }
 
 const posts = await Post.get();
@@ -386,7 +390,7 @@ This query would give us the first 10 posts.
 ### Advanced Pagination
 The `paginate` method can handle the pagination process that we have been doing manually and adds some extra features to it.
 
-This method returns a `LengthAwarePaginator` instance which it extends our `Collection` class. That makes it an advanced collection that can be used to get the total number of items, current page, items per page, total number of pages, request the next page with ease and of course get the items. We will see soon what collections can do.
+This method returns a `LengthAwarePaginator` instance which it extends our `Collection` class. We will see soon what collections can do but for now, that makes it an advanced collection that can be used to get the total number of items, current page, items per page, total number of pages, request the next page with ease and of course get the items.
 
 ```js
 const paginator = await Post.paginate();
@@ -564,7 +568,7 @@ const reactions = await Post.from( post, comment, "reactions" ).all();
 GET /api/v1.0/posts/48/comments/4815/reactions
 ```
 
-# CRUD OPERATIONS
+# Crud Operations
 Restorm provides a set of methods that allow us to perform CRUD operations on RESTful resources, and we have seen above how to handle the `(R)ead` side by `get`, `all`, `find`, `first` methods.
 
 So let's see how to perform `(C)reate`, `(U)pdate` and `(D)elete` operations.
@@ -590,4 +594,4 @@ POST /api/v1.0/posts
 
 The `post` method is very self-explanatory, it just sends a `POST` request to the resource endpoint but the `save` method has something magical behind it.
 
-If the primary key is not set, it will send a `POST` request to the resource endpoint, otherwise it will send a `PUT` request. That means it can handle creation and updating of resources.
+If the primary key is not set on the model instance, it will send a `POST` request, otherwise it will send a `PUT` request. That means it can handle creation and updating of resources.
