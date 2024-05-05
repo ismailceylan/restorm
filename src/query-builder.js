@@ -692,12 +692,18 @@ export default class QueryBuilder
 	 */
 	async find( primary )
 	{
+		// save current resource endpoint
+		const resource = this.resource;
+
 		const result = await this
 			.from( this.model.resource + "/" + primary )
 			.page( null )
 			.limit( null )
 			.get();
-		
+
+		// we should restore latest resource
+		this.resource = resource;
+
 		if( result instanceof Model )
 		{
 			return result;
