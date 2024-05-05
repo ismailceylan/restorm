@@ -48,7 +48,7 @@ There are two ways to get a list of resources.
 ### Using all Method
 The `all` method creates a request to access all resources under the root directory of endpoint.
 
-It will make sure that even the response has only one resource, the resolved promise will be fulfilled with a collection and that collection will be filled with instance(s) of the model.
+It will make sure that even the response has only one resource, the resolved promise will be fulfilled with a collection and that collection will be filled with instance(s) of the model(s).
 
 If the response is empty, the promise will be fulfilled with an empty collection.
 
@@ -61,7 +61,7 @@ GET /api/v1.0/posts
 ```
 
 ### Using get Method
-If we are sure that the endpoint is kind of a multiple resource returner or we are aware that we will deal with the results either as a collection or a single model then we can use `get` method.
+If we are sure that the endpoint is kind of a multiple resource returner or we are aware that we should have to deal with the results either as a collection or a single model then we can use `get` method.
 
 The method will detect the returned resource's type and returns a promise that will be fulfilled with an instance of `collection` of models or an instance of `model`.
 
@@ -542,12 +542,18 @@ There is no need to track the current page number, as Restorm will handle this f
 Additionally, Restorm keeps track of whether requests have been completed or not. When the `next` method is called, if there is still a pending request awaiting response, the call is ignored. We don't need to deal with such matters.
 
 ```js
-paginator.next();
+const posts = await paginator.next();
+
+paginator.forEach( post =>
+	console.log( post.title )
+);
 ```
 
 ```
 GET /api/v1.0/posts?limit=10&page=2&paginate=length-aware
 ```
+
+We can use `posts` collection which is a basic (not paginated) collection to get the next page of posts or we keep going to use the same paginator instance to access same models placed on `posts` with extra pagination functionality.
 
 ## Conditional Queries
 Sometimes, we might want to add a constraint to our query. To do this, we can use the `when` method. The first argument is a boolean expression, and the second is a callback function. The callback will receive query builder instance and the condition flag's value as arguments.
