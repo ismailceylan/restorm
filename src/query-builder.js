@@ -409,7 +409,7 @@ export default class QueryBuilder
 	 */
 	async all()
 	{
-		const result = await this.page( null ).limit( null ).get();
+		const result = await this.get();
 
 		if( result instanceof Model )
 		{

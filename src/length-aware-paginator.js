@@ -31,6 +31,13 @@ export default class LengthAwarePaginator extends Collection
 	isPending = false;
 
 	/**
+	 * Latest promise.
+	 * 
+	 * @type {Promise<Collection>}
+	 */
+	latestPromise = Promise.resolve( new Collection );
+
+	/**
 	 * Instantiate length aware paginator.
 	 * 
 	 * @param {QueryBuilder} builder query builder instance
@@ -53,7 +60,7 @@ export default class LengthAwarePaginator extends Collection
 	 * Performs a GET request and put retreived data on public
 	 * data property and returns paginator.
 	 * 
-	 * @return {LengthAwarePaginator}
+	 * @return {Promise<Collection>}
 	 */
 	ping()
 	{
@@ -61,7 +68,7 @@ export default class LengthAwarePaginator extends Collection
 
 		this.isPending = true;
 
-		this.builder
+		return this.latestPromise = this.builder
 			.on( "finished", () => this.isPending = false, once )
 			.on( 204, () => this.data = [], once )
 			.on( 200, ( collection, response, data ) =>
@@ -71,27 +78,24 @@ export default class LengthAwarePaginator extends Collection
 				this.#hydrateMeta( response.data );
 				this.builder.trigger( "paginated", [ this, response, data ]);
 			}, once )
-			.get();
-
-		return this;
+			.all();
 	}
 
 	/**
 	 * Increments the current page number and ping again.
 	 * 
-	 * @return {LengthAwarePaginator}
+	 * @return {Promise<Collection>}
 	 */
 	next()
 	{
 		if( this.page.end || this.isPending )
 		{
-			return this;
+			return this.latestPromise;
 		}
 
 		this.builder.page( this.page.currentPage + 1 );
-		this.ping();
 
-		return this;
+		return this.ping();
 	}
 
 	#hydrateMeta( responseBody )
