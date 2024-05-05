@@ -832,18 +832,18 @@ export default class QueryBuilder
 	 * executed by taking the field values they are associated with.
 	 * 
 	 * @param {string|object} fieldNameOrFieldsObj field name or fields object
-	 * @param {function} castHandle cast implementer
+	 * @param {function} castingHandler cast implementer
 	 * @param {array} payload additional arguments to push cast implementer's arguments
 	 * @return {QueryBuilder}
 	 */
-	cast( fieldNameOrFieldsObj, castHandle, payload = [])
+	cast( fieldNameOrFieldsObj, castingHandler, payload = [])
 	{
 		if( arguments.length > 1 )
 		{
 			this.casts[ fieldNameOrFieldsObj ] =
 			{
 				payload,
-				handle: castHandle,
+				handle: castingHandler,
 			}
 		}
 		else if( isPlainObject( fieldNameOrFieldsObj ))

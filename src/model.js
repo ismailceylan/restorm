@@ -543,7 +543,7 @@ export default class Model
 	static getInheritedMethods()
 	{
 		const staticMethods = {}
-		const ignored = [ "name", "prototype", "constructor", "length" ];
+		const ignoredMethods = [ "name", "prototype", "constructor", "length" ];
 		let current = this;
 
 		do
@@ -556,7 +556,7 @@ export default class Model
 			Object
 				.getOwnPropertyNames( current )
 				.filter( name =>
-					! ignored.includes( name ) && this[ name ] instanceof Function
+					! ignoredMethods.includes( name ) && this[ name ] instanceof Function
 				)
 				.forEach( name =>
 				{
@@ -607,6 +607,11 @@ export default class Model
 		this.#applyCasts( casts );
 		
 		return this;
+	}
+
+	post( payload )
+	{
+		
 	}
 
 	/**
