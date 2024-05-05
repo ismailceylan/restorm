@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/ismailceylan/restorm/compare/v1.3.1...v1.4.0) (2024-05-05)
+
+
+### Features
+
+* add dynamic resource building ([ac3be37](https://github.com/ismailceylan/restorm/commit/ac3be3760d416aaff5e8d87a293eeef7c915613c))
+
+
+### Bug Fixes
+
+* **model:** add hasInstance method to remove maximum call stack exceeded errors ([b0431cd](https://github.com/ismailceylan/restorm/commit/b0431cde61c525097832e23f522d4f98a73b8895))
+* **query-builder:** temp resource occupation caused by the find method ([6bff726](https://github.com/ismailceylan/restorm/commit/6bff72663a0e176fd5e14958aa77ea9b2785c497))
+
 ### [1.3.1](https://github.com/ismailceylan/restorm/compare/v1.3.0...v1.3.1) (2024-03-29)
 
 
