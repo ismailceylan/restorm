@@ -40,15 +40,17 @@ export default class Post extends BaseModel
 After preparing our models, we can create RESTful requests with them.
 
 ## Retreiving a List of Resources
+There are two ways to get a list of resources.
+
+* `all` - Get all resources as collection under any circumstance.
+* `get` - Get all resources as collection or a single resource model.
+
+### Using all Method
 The `all` method creates a request to access all resources under the root directory of endpoint.
 
 It will make sure that even the response has only one resource, the resolved promise will be fulfilled with a collection and that collection will be filled with instance(s) of the model.
 
 If the response is empty, the promise will be fulfilled with an empty collection.
-
-If we know that the endpoint is kind of a single resource returner, we can use `get` or `first` methods either to get it. The `get` will autodetect the returned resource type and return an instance of the `model` or `collection` of models. The `first` method will return an instance of the model.
-
-We will see how to use those methods in the next sections. Now let's see how we can use the `all` method.
 
 ```js
 const posts = await Post.all();
@@ -58,8 +60,30 @@ const posts = await Post.all();
 GET /api/v1.0/posts
 ```
 
+### Using get Method
+If we are sure that the endpoint is kind of a multiple resource returner or we are aware that we will deal with the results either as a collection or a single model then we can use `get` method.
+
+The method will detect the returned resource's type and returns a promise that will be fulfilled with an instance of `collection` of models or an instance of `model`.
+
+```js
+import { Collection } from "@iceylan/restorm";
+
+const result = await Post.where( conditions ).get();
+
+if( result instanceof Collection )
+{
+	result.forEach( post =>
+		console.log( post.id )
+	);
+}
+```
+
+```
+GET /api/v1.0/posts
+```
+
 ## Retrieving a Single Resource
-There are two main methods that enable us to obtain a single resource.
+There are three methods that enable us to obtain a single resource.
 
 * `first` - Get the first resource in a resource collection.
 * `find` - Find a specific resource based on the primary key.
@@ -89,7 +113,7 @@ const post = await Post.find( 1 );
 GET /api/v1.0/posts/1
 ```
 
-### Getting All Resources
+### Using get Method
 The `get` method creates a request to access all resources under the root directory of restful endpoint with filtering criteria. The results may be a single resource or an array of resources.
 
 `get` will autodetect the returned resource type and return a promise that will be fulfilled with an instance of the `model` or `collection` of models.
@@ -102,12 +126,6 @@ const result = await Post.where( conditions ).get();
 if( result instanceof Model )
 {
 	console.log( result.title );
-}
-else if( result instanceof Collection )
-{
-	result.forEach( post =>
-		console.log( post.id )
-	);
 }
 ```
 
