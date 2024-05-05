@@ -42,13 +42,13 @@ After preparing our models, we can create RESTful requests with them.
 ## Retreiving a List of Resources
 The `all` method creates a request to access all resources under the root directory of endpoint.
 
-It will make sure that even the response has only one resource, the resolved promise will be fulfilled with a collection and that collection will be filled with instances of the model.
+It will make sure that even the response has only one resource, the resolved promise will be fulfilled with a collection and that collection will be filled with instance(s) of the model.
 
 If the response is empty, the promise will be fulfilled with an empty collection.
 
-If the endpoint is kind of a single resource returner, we can use `get` or `first` methods either to get it. The `get` will autodetect the returned resource type and return an instance of the `model` or `collection` of models. The `first` method will return an instance of the model.
+If we know that the endpoint is kind of a single resource returner, we can use `get` or `first` methods either to get it. The `get` will autodetect the returned resource type and return an instance of the `model` or `collection` of models. The `first` method will return an instance of the model.
 
-We will see how to use those methods in the next sections.
+We will see how to use those methods in the next sections. Now let's see how we can use the `all` method.
 
 ```js
 const posts = await Post.all();
@@ -63,6 +63,7 @@ There are two main methods that enable us to obtain a single resource.
 
 * `first` - Get the first resource in a resource collection.
 * `find` - Find a specific resource based on the primary key.
+* `get` - Get all resources as collection or a single resource model.
 
 ### Getting the First Resource
 The `first` method creates a request to the root directory of resources with filtering criteria, and it requests the first item of the results found.
@@ -86,6 +87,32 @@ const post = await Post.find( 1 );
 
 ```
 GET /api/v1.0/posts/1
+```
+
+### Getting All Resources
+The `get` method creates a request to access all resources under the root directory of restful endpoint with filtering criteria. The results may be a single resource or an array of resources.
+
+`get` will autodetect the returned resource type and return a promise that will be fulfilled with an instance of the `model` or `collection` of models.
+
+```js
+import { Model } from "@iceylan/restorm";
+
+const result = await Post.where( conditions ).get();
+
+if( result instanceof Model )
+{
+	console.log( result.title );
+}
+else if( result instanceof Collection )
+{
+	result.forEach( post =>
+		console.log( post.id )
+	);
+}
+```
+
+```
+GET /api/v1.0/posts
 ```
 
 ## Including Relationships
@@ -152,7 +179,7 @@ To list specific resources, we add filters with `where` method to accomplish thi
 We can directly filter represented resources by models:
 
 ```js
-const posts = await Post.where( "type", "article" ).get();
+const posts = await Post.where( "type", "article" ).all();
 ```
 
 ```
@@ -160,16 +187,16 @@ GET /api/v1.0/posts?filter[type]=article
 ```
 
 ### Filtering Related Resource
-If the related resource is in multiple manner (i.e., one-to-many), we can also indirectly add filters to these sub-resources to reduce the returned results.
+If the related resource that we included in by `with` method is kind of multiple (i.e., one-to-many), for example comments of a post, we can also indirectly add filters to these sub-resources (comments) to reduce the returned results.
 
 ```js
 const posts = await Post
-	.with( "comments" )
 	.where( "type", "article" )
+	.with( "comments" )
 	.where( "comments.state", "approved" )
 	// or
 	.where([ "comments", "state" ], "approved" )
-	.get();
+	.all();
 ```
 
 ```
@@ -193,7 +220,7 @@ const conditions =
 	},
 }
 
-const posts = await Post.with( "comments" ).where( conditions ).get();
+const posts = await Post.with( "comments" ).where( conditions ).all();
 ```
 
 ```
@@ -352,7 +379,7 @@ So, let's see how we can use these methods.
 The `page` method is used to specify the page number.
 
 ```js
-const posts = await Post.page( 2 ).get();
+const posts = await Post.page( 2 ).all();
 ```
 
 ```
@@ -363,7 +390,7 @@ GET /api/v1.0/posts?page=2
 The `limit` method is used to specify the number of items per page.
 
 ```js
-const posts = await Post.limit( 10 ).get();
+const posts = await Post.limit( 10 ).all();
 ```
 
 ```
@@ -378,14 +405,24 @@ class Post extends BaseModel
 	itemsPerPage = 10;
 }
 
-const posts = await Post.get();
+const posts = await Post.all();
 ```
 
 ```
 GET /api/v1.0/posts?limit=10
 ```
 
-This query would give us the first 10 posts.
+We defined a default limit on Post level. The query would give us the first 10 posts.
+
+```js
+const [ firstPage, secondPage ] = await Promise.all(
+[
+	Post.page( 1 ).all(),
+	Post.page( 2 ).all()
+]);
+```
+
+We requested the first and second page and got the first and second 10 posts simultaneously.
 
 ### Advanced Pagination
 The `paginate` method can handle the pagination process that we have been doing manually and adds some extra features to it.
@@ -401,7 +438,7 @@ GET /api/v1.0/posts?limit=10&page=1&paginate=length-aware
 ```
 
 #### Pagination Metadata
-The `LengthAwarePaginator` has a property named `page` which holds a `Page` instance. If the Rest API has included pagination metadata in its responses, this information is abstracted with the `Page` class, and we can access it through the paginator.
+The `LengthAwarePaginator` has a property named `page` which holds a `Page` instance. If the Rest API that we are requesting has included pagination metadata in its responses, this information is abstracted with the `Page` class, and we can access it through the paginator.
 
 Let's now explore what these useful pagination information are.
 
@@ -454,12 +491,12 @@ The `end` property is a flag that indicates if the pagination is at the end and 
 const { end } = paginator.page;
 ```
 
-#### Normalizing Metadata
-Rest APIs can provide various types of pagination metadata. The `Page` class normalizes this metadata into a consistent format, but we need to specify which information corresponds to which attribute and distribute them properly.
+#### Normalizing Pagination Metadata
+Restful APIs can provide various types of pagination metadata depending on the frameworks, libraries and developers. The `Page` class normalizes this metadata into a consistent format, but we need to specify which information corresponds to which attribute and distribute them properly.
 
-We achieve this by defining a static method called `$pluckPaginations` on the model. Restorm invokes this method by passing the body of the response sent by the Rest API and the `Page` instance through the argument tunnel. We should then use these objects to ensure the necessary distribution.
+We achieve this by defining a static method called `$pluckPaginations` on our models. Restorm invokes this method by passing the body of the response sent by the Restful API and the `Page` instance through the argument tunnel. We should then use these objects to ensure the necessary distribution.
 
-For example, while our post data may be provided through Django, our user data may be powered by Laravel. In those kind of cases, we can define the mentioned function separately in the `Post` model and the `User` model. Otherwise if all our data is being fed by the same framework, we can write it once in the `BaseModel`.
+For example, while our post data may be provided through Django and user data may be powered by Laravel. In those kind of cases, we can define the mentioned function individually in the `Post` model and the `User` model. Otherwise if all the data is being fed by the same framework, we can write it once in the `BaseModel`.
 
 ```js
 // models/base-model.js
@@ -490,8 +527,14 @@ Additionally, Restorm keeps track of whether requests have been completed or not
 paginator.next();
 ```
 
+```
+GET /api/v1.0/posts?limit=10&page=2&paginate=length-aware
+```
+
 ## Conditional Queries
 Sometimes, we might want to add a constraint to our query. To do this, we can use the `when` method. The first argument is a boolean expression, and the second is a callback function. The callback will receive query builder instance and the condition flag's value as arguments.
+
+The main advantage of using `when` method is that it allows us to keep querying in a single line without breaking the chain. Otherwise, we would have to use if-else statements and add more lines.
 
 ```js
 function getUserId()
@@ -510,14 +553,14 @@ const posts = await Post
 	.when( getUserId(), ( query, userId ) =>
 		query.where( "author_id", userId )
 	)
-	.get();
+	.all();
 ```
 
 ```
 GET /api/v1.0/posts?filter[author_id]=481516
 ```
 
-You have to be careful with falsy values. For example, if you pass `0` as an user ID, it will be considered as `false`, and the query will not be executed.
+You have to be careful with falsy values. For example, if you pass `0` as an user ID, it will be considered as `false`, and the constraint piece will not be executed even though when it should.
 
 ## Additional Params
 Sometimes, we might want to pass additional parameters to the query that restorm doesn't pass explicitly.
@@ -579,13 +622,13 @@ On Http protocol, creation is done by sending a `POST` or some cases `PUT` reque
 ```js
 const newPost = new Post(
 {
-	title: "Elon Musk went to the Moon instead Mars",
+	title: "Elon Musk went to the Moon instead of Mars",
 	content: "Yeah! You heard right, he did just like that! Unbelievable."
 });
 
-newPost.save();
-// or
 newPost.post();
+// or
+newPost.save();
 ```
 
 ```
