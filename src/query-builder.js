@@ -475,7 +475,7 @@ export default class QueryBuilder
 
 	/**
 	 * Sends the given payload with `PUT` request to the represented
-	 * model's resource.
+	 * model's endpoint.
 	 * 
 	 * @param {string|number|object} targetPrimaryKeyValueOrPayload a primary key
 	 * value or a plain object as payload
@@ -520,14 +520,44 @@ export default class QueryBuilder
 	}
 
 	/**
+	 * @async
+	 * @callback ActionHook
+	 * @return {Promise<AxiosResponse>}
+	 */
+
+	/**
+	 * @callback HydrateHook
+	 * @param {AxiosResponse} response response object returned from restful endpoint
+	 * @return {object} hydrated resource
+	 */
+
+	/**
+	 * @callback AfterHook
+	 */
+
+	/**
+	 * @typedef RequestLifecycleHooks
+	 * @type {object}
+	 * @property {ActionHook=} action a method encapsulates requesting operations
+	 * @property {HydrateHook=} hydrate a method encapsulates hydrating operations
+	 * @property {AfterHook=} after a method encapsulates actions to be run after receiving response
+	 */
+
+	/**
+	 * @typedef RestormResponse
+	 * @type {object}
+	 * @property {Model|Collection} hydrated the response body instantiated as a model or collection
+	 * @property {AxiosResponse} response response object
+	 * @property {object|array<{}>} data response data
+	 */
+
+	/**
 	 * Makes requests, triggers events, runs hooks, converts received
 	 * resource to a Model or Collection, and resolves with it.
 	 * 
-	 * @param {object} hooks lifecycle methods
-	 * @property {function} hooks.action request maker function
-	 * @property {function} hooks.hydrate hydrate hook
-	 * @property {function} hooks.after method to be run after receiving response
-	 * @return {Promise<{hydrated:Model|Collection,response:AxiosResponse,data:{}|[]}>}
+	 * @async
+	 * @param {RequestLifecycleHooks=} hooks lifecycle methods
+	 * @return {Promise<RestormResponse|Error>}
 	 * @emits QueryBuilder#waiting
 	 */
 	async request({ action, hydrate, after } = {})
@@ -556,10 +586,10 @@ export default class QueryBuilder
 	/**
 	 * It handles the response and triggers the appropriate events.
 	 * 
-	 * @param {AxiosResponse<any,any>} response response object
-	 * @param {function} hydrate hydrate hook
-	 * @param {function} after method to be run after receiving response
-	 * @return {{hydrated:Model|Collection,response:AxiosResponse,data:{}|[]}
+	 * @param {AxiosResponse} response response object
+	 * @param {HydrateHook=} hydrate hydrate hook
+	 * @param {AfterHook=} after method to be run after receiving response
+	 * @return {RestormResponse}
 	 * @emits QueryBuilder#[StatusCode]
 	 * @emits QueryBuilder#success
 	 * @emits QueryBuilder#finished
