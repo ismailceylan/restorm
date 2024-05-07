@@ -542,7 +542,7 @@ There is no need to track the current page number, as Restorm will handle this f
 Additionally, Restorm keeps track of whether requests have been completed or not. When the `next` method is called, if there is still a pending request awaiting response, the call is ignored. We don't need to deal with such matters.
 
 ```js
-const posts = await paginator.next();
+await paginator.next();
 
 paginator.forEach( post =>
 	console.log( post.title )
@@ -553,7 +553,7 @@ paginator.forEach( post =>
 GET /api/v1.0/posts?limit=10&page=2&paginate=length-aware
 ```
 
-We can use `posts` collection which is a basic (not paginated) collection to get the next page of posts or we keep going to use the same paginator instance to access same models placed on `posts` with extra pagination functionality.
+We can use `posts` collection which is a basic (not paginated) collection to get the posts or we keep going to use the same paginator instance to access same models placed on `posts` with extra pagination functionality.
 
 ## Conditional Queries
 Sometimes, we might want to add a constraint to our query. To do this, we can use the `when` method. The first argument is a boolean expression, and the second is a callback function. The callback will receive query builder instance and the condition flag's value as arguments.
@@ -584,10 +584,10 @@ const posts = await Post
 GET /api/v1.0/posts?filter[author_id]=481516
 ```
 
-You have to be careful with falsy values. For example, if you pass `0` as an user ID, it will be considered as `false`, and the constraint piece will not be executed even though when it should.
+You have to be careful with falsy values. For example, if you pass `0` as an user ID, it will be considered as `false`, and the constraint piece will not be executed even though it should.
 
 ## Additional Params
-Sometimes, we might want to pass additional parameters to the query that restorm doesn't pass explicitly.
+Sometimes, we might want to pass additional parameters to the query that restorm doesn't handle explicitly.
 
 To do this, we can use the `params` method. It accepts an object of additional parameters. We should pass all the parameters that we want to pass to the query at once.
 
@@ -622,6 +622,8 @@ const posts = await Post.from( "timeline" ).all();
 GET /api/v1.0/timeline
 ```
 
+All the items in the returned collection will be instance of `Post` model.
+
 ### Model Aware Custom Resource
 Sometimes, we might want to build dynamic resource URIs depending on some model instances that we have already.
 
@@ -641,24 +643,112 @@ Restorm provides a set of methods that allow us to perform CRUD operations on RE
 So let's see how to perform `(C)reate`, `(U)pdate` and `(D)elete` operations.
 
 ## Create
-On Http protocol, creation is done by sending a `POST` or some cases `PUT` request to the RESTful endpoints.
+On HTTP protocol, creation is done by sending a `POST` request to the RESTful api endpoints.
 
 ```js
-const newPost = new Post(
+const draft = new Article(
 {
 	title: "Elon Musk went to the Moon instead of Mars",
 	content: "Yeah! You heard right, he did just like that! Unbelievable."
 });
 
-newPost.post();
 // or
-newPost.save();
+
+const draft = new Article;
+
+draft.title = "Elon Musk went to the Moon instead of Mars";
+draft.content = "Yeah! You heard right, he did just like that! Unbelievable.";
+
+// and 
+
+draft.post();
+// or
+draft.save();
 ```
 
 ```
-POST /api/v1.0/posts
+POST /api/v1.0/articles
 ```
 
-The `post` method is very self-explanatory, it just sends a `POST` request to the resource endpoint but the `save` method has something magical behind it.
+The result should look like this:
 
-If the primary key is not set on the model instance, it will send a `POST` request, otherwise it will send a `PUT` request. That means it can handle creation and updating of resources.
+```json
+{
+	"id": 1,
+	"title": "Elon Musk went to the Moon instead of Mars",
+	"content": "Yeah! You heard right, he did just like that! Unbelievable."
+}
+```
+
+The `post` method is very self-explanatory, it just sends a `POST` request to the api endpoint but the `save` method has something magical behind it.
+
+If the primary key (`id` in this case) is not set on the model instance like the example above, it will send a `POST` request, otherwise it will send a `PATCH` request. We will see that in the next sections.
+
+## Update
+We can update an existing resource by sending a `PATCH` or `PUT` request to api endpoints.
+
+As you know already the `PUT` is used to update an existing resource as a whole. That means, missing properties should convert to `null` or default values on the database.
+
+The `PATCH` on the other hand, is used to update only some of the properties of the resource and missing properties will be stay as they are. This is what makes `PATCH` lightweight compared to `PUT`.
+
+Restorm smart enough to know which properties of the model you modified and that gives us an opportunity to send always a lightweight `PATCH` request instead of a `PUT`.
+
+```js
+const article = await Article.find( 1 );
+
+article.title = "Jeff Bezos went to the Moon instead of Mars";
+article.save();
+// or more explicitly
+article.patch();
+```
+
+```
+PATCH /api/v1.0/articles/1
+```
+
+And the resource will be like:
+
+```json	
+{
+	"id": 1,
+	"title": "Jeff Bezos went to the Moon instead of Mars",
+	"content": "Yeah! You heard right, he did just like that! Unbelievable."
+}
+```
+
+`save` method always sends a `PATCH` request if the case about updating an existing resource. But sometimes we really want to send a `PUT` request. We can do that by using the `put` method of Restorm.
+
+```js
+const state =
+{
+	title: "Jeff Bezos went to the Moon instead of Mars"
+}
+
+// we can get the resource as a model from the endpoint
+const article = await Article.find( 1 );
+
+// or we can bake the model manually without `GET` request
+// if we sure that the resource exists remotely
+const article = new Article({ id: 1 });
+
+// and we can send a `PUT` request for a model
+article.put( state );
+
+// or we just can directly send a `PUT` request statically
+// if we sure that the resource exists
+Article.put( 1, state );
+```
+
+```
+PUT /api/v1.0/articles/1
+```
+
+And the resource should be like:
+
+```JSON
+{
+	"id": 1,
+	"title": "Jeff Bezos went to the Moon instead of Mars",
+	"content": null
+}
+```
