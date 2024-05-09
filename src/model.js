@@ -625,11 +625,10 @@ export default class Model
 	 * ```
 	 * 
 	 * @param {object} payload params to be sent to the resource
-	 * @return {Promise<Model>|Promise<Collection<Model>>}
 	 */
 	put( payload )
 	{
-		const query = this.constructor.createBuilder( this );
+		const query = Model.createBuilder( this );
 
 		return query.request(() =>
 			query.client.put( payload )
@@ -658,16 +657,15 @@ export default class Model
 	 * ```
 	 * 
 	 * @param {object} payload params to be sent to the resource
-	 * @return {Promise<Model>|Promise<Collection<Model>>}
 	 */
 	patch( payload )
 	{
-		const query = this.constructor.createBuilder( this );
+		const query = Model.createBuilder( this );
 
 		return query.request(
 		{
 			action: () => query.client.patch( payload || this.modified ),
-			after: () => this.clean( payload || this.modified)
+			after: () => this.clean( payload || this.modified )
 		});
 	}
 
@@ -692,7 +690,7 @@ export default class Model
 	 */
 	on( evtName, handler, { append = true, once = false } = {})
 	{
-		return this.constructor
+		return Model
 			.createBuilder( this )
 			.on( evtName, handler, { append, once });
 	}
@@ -711,7 +709,7 @@ export default class Model
 	 */
 	cast( fieldNameOrFieldsObj, castHandle, payload = [])
 	{
-		return this.constructor
+		return Model
 			.createBuilder( this )
 			.cast( ...arguments );
 	}
