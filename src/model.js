@@ -36,6 +36,13 @@ export default class Model
 	static casts = {}
 
 	/**
+	 * The QueryBuilder instance that will be used to query the API.
+	 * 
+	 * @type {QueryBuilder}
+	 */
+	query = null;
+
+	/**
 	 * Modifications made to the represented model instance.
 	 * 
 	 * @type {object}
@@ -592,6 +599,8 @@ export default class Model
 	constructor( properties = {}, casts = {})
 	{
 		this.init( properties, casts );
+
+		this.query = this.constructor.createBuilder( this );
 	}
 
 	/**
@@ -628,7 +637,7 @@ export default class Model
 	 */
 	put( payload )
 	{
-		const query = Model.createBuilder( this );
+		const { query } = this;
 
 		return query.request(() =>
 			query.client.put( payload )
@@ -660,7 +669,7 @@ export default class Model
 	 */
 	patch( payload )
 	{
-		const query = Model.createBuilder( this );
+		const { query } = this;
 
 		return query.request(
 		{
@@ -690,9 +699,7 @@ export default class Model
 	 */
 	on( evtName, handler, { append = true, once = false } = {})
 	{
-		return Model
-			.createBuilder( this )
-			.on( evtName, handler, { append, once });
+		return this.query.on( evtName, handler, { append, once });
 	}
 
 	/**
@@ -709,9 +716,7 @@ export default class Model
 	 */
 	cast( fieldNameOrFieldsObj, castHandle, payload = [])
 	{
-		return Model
-			.createBuilder( this )
-			.cast( ...arguments );
+		return this.query.cast( ...arguments );
 	}
 
 	/**
