@@ -197,7 +197,7 @@ To list specific resources, we add filters with `where` method to accomplish thi
 We can directly filter represented resources by models:
 
 ```js
-const posts = await Post.where( "type", "article" ).all();
+const articles = await Post.where( "type", "article" ).all();
 ```
 
 ```
@@ -208,7 +208,7 @@ GET /api/v1.0/posts?filter[type]=article
 If the related resource that we included in by `with` method is kind of multiple (i.e., one-to-many), for example comments of a post, we can also indirectly add filters to these sub-resources (comments) to reduce the returned results.
 
 ```js
-const posts = await Post
+const articles = await Post
 	.where( "type", "article" )
 	.with( "comments" )
 	.where( "comments.state", "approved" )
@@ -238,7 +238,7 @@ const conditions =
 	},
 }
 
-const posts = await Post.with( "comments" ).where( conditions ).all();
+const articles = await Post.with( "comments" ).where( conditions ).all();
 ```
 
 ```
@@ -326,7 +326,11 @@ const sorting =
 	// or
 	comments:
 	{
-		id: "desc"
+		id: "desc",
+		replies:
+		{
+			created_at: "desc"
+		}
 	}
 }
 
@@ -334,7 +338,7 @@ const posts = await Post.with( "comments" ).orderBy( sorting ).get();
 ```
 
 ```
-GET /api/v1.0/posts?with=comments&sort[updated_at]=desc&sort[created_at]=asc&sort[comments.id]=desc
+GET /api/v1.0/posts?with=comments&sort[updated_at]=desc&sort[created_at]=asc&sort[comments.id]=desc&sort[comments.replies.created_at]=desc
 ```
 
 ## Selecting Fields
@@ -375,7 +379,12 @@ const selections =
     // related resource fields
     comments: [ "id", "author_id", "comment" ],
     // deeply related resource fields
-    "comments.author": [ "id", "username" ]
+    "comments.author": [ "id", "username" ],
+	// or
+	comments:
+	{
+		author: [ "id", "username" ]
+	}
 }
 
 const posts = Post.select( selections ).all();
@@ -522,7 +531,7 @@ import { Model } from "restorm";
 
 class BaseModel extends Model
 {
-	static $pluckPaginations( responseBody, page )
+	static $pluckPaginations( page, responseBody )
 	{
 		page.currentPage = responseBody.current_page;
 		page.lastPage = responseBody.last_page;
@@ -537,7 +546,7 @@ class BaseModel extends Model
 #### Querying Next Page
 Paginators allows us to query the next page of resources that we are currently working on. We can do this by calling the `next` method on the paginator instance.
 
-There is no need to track the current page number, as Restorm will handle this for us.
+There is no need to track the current page number, increase it etc. as Restorm will handle this for us.
 
 Additionally, Restorm keeps track of whether requests have been completed or not. When the `next` method is called, if there is still a pending request awaiting response, the call is ignored. We don't need to deal with such matters.
 
@@ -553,7 +562,7 @@ paginator.forEach( post =>
 GET /api/v1.0/posts?limit=10&page=2&paginate=length-aware
 ```
 
-We can use `posts` collection which is a basic (not paginated) collection to get the posts or we keep going to use the same paginator instance to access same models placed on `posts` with extra pagination functionality.
+We used same paginator instance to access fetched models placed on it.
 
 ## Conditional Queries
 Sometimes, we might want to add a constraint to our query. To do this, we can use the `when` method. The first argument is a boolean expression, and the second is a callback function. The callback will receive query builder instance and the condition flag's value as arguments.
@@ -584,7 +593,7 @@ const posts = await Post
 GET /api/v1.0/posts?filter[author_id]=481516
 ```
 
-You have to be careful with falsy values. For example, if you pass `0` as an user ID, it will be considered as `false`, and the constraint piece will not be executed even though it should.
+You have to be careful with falsy values. For example, if you pass `0` as an user ID, it will be considered as `false`, and the constraint block won't be executed even though it should by your perspective.
 
 ## Additional Params
 Sometimes, we might want to pass additional parameters to the query that restorm doesn't handle explicitly.
@@ -630,7 +639,8 @@ Sometimes, we might want to build dynamic resource URIs depending on some model 
 ```js
 const post = new Post({ id: 48 });
 const comment = new Comment({ id: 4815, post_id: post.id });
-const reactions = await Post.from( post, comment, "reactions" ).all();
+
+const reactions = await Reaction.from( post, comment, "reactions" ).all();
 ```
 
 ```
@@ -645,25 +655,44 @@ So let's see how to perform `(C)reate`, `(U)pdate` and `(D)elete` operations.
 ## Create
 On HTTP protocol, creation is done by sending a `POST` request to the RESTful api endpoints.
 
+We designed a few alternative ways to create resources. First, we can create resources as model instances and send them.
+
 ```js
-const draft = new Article(
+const title = "Elon Musk went to the Moon instead of Mars";
+const content = "Yeah! You heard right, he did just like that! Unbelievable.";
+
+const draft = new Article({ title });
+
+// and we can assign missed properties later to the model
+draft.content = content;
+
+const article = await draft.post();
+// or
+const article = await draft.save();
+
+if( article instanceof AxiosError )
+{
+	console.log( "network or server errors", article );
+}
+```
+
+The `post` method returns a promise that will be fulfilled with an instance of `Article` model or an `Error` if there is an issue. Errors won't be thrown and you can't catch them with `async-await & try-catch` or `then-catch` mechanism. Restorm will supress throwing all the HTTP errors with 400 and 500 status codes and network errors as well.
+
+If you want to handle errors then you can add event listeners to your queries or models, or you can handle it manually when they're returned by `post` method.
+
+If Restorm detects issues with the usage of its methods, it will throws an error and stops your application. You shouldn't catch and handle that kind of errors manually and suppress them, just have to solve and disappear them.
+
+We can also statically use the `post` method.
+
+```js
+const newArticle = await Article.post(
 {
 	title: "Elon Musk went to the Moon instead of Mars",
 	content: "Yeah! You heard right, he did just like that! Unbelievable."
 });
 
-// or
-
-const draft = new Article;
-
-draft.title = "Elon Musk went to the Moon instead of Mars";
-draft.content = "Yeah! You heard right, he did just like that! Unbelievable.";
-
-// and 
-
-draft.post();
-// or
-draft.save();
+console.log( newArticle.id );
+// 1
 ```
 
 ```
@@ -697,9 +726,10 @@ Restorm smart enough to know which properties of the model you modified and that
 const article = await Article.find( 1 );
 
 article.title = "Jeff Bezos went to the Moon instead of Mars";
-article.save();
+
+await article.save();
 // or more explicitly
-article.patch();
+await article.patch();
 ```
 
 ```
@@ -716,7 +746,7 @@ And the resource will be like:
 }
 ```
 
-`save` method always sends a `PATCH` request if the case about updating an existing resource. But sometimes we really want to send a `PUT` request. We can do that by using the `put` method of Restorm.
+The `save` method always sends a `PATCH` request if the case is about updating an existing resource. However, sometimes we really want to send a `PUT` request. We can do that by using the `put` method of Restorm.
 
 ```js
 const state =
@@ -732,11 +762,11 @@ const article = await Article.find( 1 );
 const article = new Article({ id: 1 });
 
 // and we can send a `PUT` request for a model
-article.put( state );
+await article.put( state );
 
 // or we just can directly send a `PUT` request statically
 // if we sure that the resource exists
-Article.put( 1, state );
+await Article.put( 1, state );
 ```
 
 ```
@@ -752,3 +782,72 @@ And the resource should be like:
 	"content": null
 }
 ```
+
+# Event Management
+Restorm provides an event management system to handle network and server errors and events. 
+
+We can add event listeners to our queries or models. Events are kind of hooks that will be triggered when certain events happen.
+
+Since Restorm have this mechanism, it doesn't need to throw network and server errors. Restorm only throws runtime errors. So that means network errors and 400-500 errors will be suppressed and won't stop the application. We should grab and handle them manually.
+
+We can add event listeners to any query builder or model. The event listeners will be triggered when the query is executed.
+
+We can register our listeners with `on` method.
+
+## QueryBuilder Event Binding
+Note that if the `on` method on the models called statically, it will create a `QueryBuilder` instance, adds event listeners to it and returns it.
+
+The event listeners that binded to a `QueryBuilder` will be valid only for that specific query builder instance.
+
+```js
+const query1 = Post.on( "failed", err =>
+	console.log( err )
+);
+
+const post = await query.find( 1 );
+const another = await Post.find( 2 );
+```
+
+It will print the error object in the console when the api endpoint returns an 400, 500 http status code or a network error happens. But it won't log anything even if the second query has an error because it's running on a different query builder instance.
+
+## Model Instance Event Binding
+As you know already, Restorm transforms remote resources into `Model` instances. We also can add event listeners to any model instance.
+
+```js
+function onNotModified( post, response, data )
+{
+	console.log ( post );
+
+	// this word refers to QueryBuilder instance
+	console.log( this );
+}
+
+const post = await Post.find( 1 );
+
+post.id = 12;
+
+await post.on( 304, onNotModified ).patch();
+```
+
+## Global Event Binding
+Sometimes we want to add event listeners to all queries to track something.
+
+We can define global event listeners as `on` prefixed static methods like `onFailed` or `onSuccess`.
+
+```js
+class BaseModel
+{
+	onFailed( err )
+	{
+		console.log( err );
+
+		// this word refers to QueryBuilder instance
+		console.log( this );
+	}
+}
+
+const post = await Post.find( 1 );
+const other = await Post.find( 2 );
+```
+
+Every child model of the `BaseModel` will inherit a listener for `failed` event and `QueryBuilder` instances created by the child models will inherit the listener as well.
