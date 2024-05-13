@@ -570,6 +570,12 @@ Sometimes, we might want to add a constraint to our query. To do this, we can us
 The main advantage of using `when` method is that it allows us to keep querying in a single line without breaking the chain. Otherwise, we would have to use if-else statements and add more lines.
 
 ```js
+const posts = await Post
+	.when( getUserId(), ( query, userId ) =>
+		query.where( "author_id", userId )
+	)
+	.all();
+
 function getUserId()
 {
 	if( something )
@@ -581,12 +587,6 @@ function getUserId()
 		return null;
 	}
 }
-
-const posts = await Post
-	.when( getUserId(), ( query, userId ) =>
-		query.where( "author_id", userId )
-	)
-	.all();
 ```
 
 ```
@@ -784,13 +784,13 @@ And the resource should be like:
 ```
 
 # Event Management
-Restorm provides an event management system to handle network and server errors and events. 
+Restorm provides an event management system to handle network errors, server errors and internal events. 
 
 We can add event listeners to our queries, models or model instances. Events are kind of hooks that will be triggered when certain events happen.
 
 Since Restorm have this mechanism, it doesn't need to throw network and server errors. Restorm only throws runtime errors. So that means network errors and 400-500 errors will be suppressed and won't stop the application. We should grab and handle them manually.
 
-We can add event listeners to any query builder or model. The event listeners will be triggered when the query is executed.
+We can add event listeners to any query builder, model or model instance. The event listeners will be triggered when the query is executed.
 
 We can register our listeners with `on` method.
 
@@ -800,11 +800,6 @@ Note that if the `on` method on the models called statically, it will create a `
 The event listeners that binded to a `QueryBuilder` will be valid only for that specific query builder instance.
 
 ```js
-function gettingPostFailed( err )
-{
-	console.log( err )
-}
-
 const query = Post.on( "failed", gettingPostFailed );
 
 const post = await query.find( 1 );
@@ -812,6 +807,11 @@ const post = await query.find( 1 );
 const post = await Post.on( "failed", gettingPostFailed ).find( 1 );
 
 const another = await Post.find( 2 );
+
+function gettingPostFailed( err )
+{
+	console.log( err )
+}
 ```
 
 It will print the error object in the console when the api endpoint returns an 400, 500 http status code or a network error happens. But it won't log anything even if the second query has an error because it's running on a different query builder instance and we didn't bind any event listener to it.
@@ -820,6 +820,15 @@ It will print the error object in the console when the api endpoint returns an 4
 As you know already, Restorm transforms remote resources into `Model` instances. We also can add event listeners to any model instance.
 
 ```js
+const post = await Post.find( 1 );
+
+post.id = 12;
+post.on( 304, postNotModified );
+
+await post.patch();
+// or shortly
+await post.on( 304, postNotModified ).patch();
+
 function postNotModified( post, response, data )
 {
 	console.log ( post );
@@ -827,16 +836,9 @@ function postNotModified( post, response, data )
 	// this word refers to QueryBuilder instance
 	console.log( this );
 }
-
-const post = await Post.find( 1 );
-
-post.id = 12;
-post.on( 304, postNotModified );
-
-await post.patch();
 ```
 
-This time `on` method is not static. That means it's on the same context with the model that represents the resource and model has it's own query builder object. It will bind the event listener that we gave it to this query builder and return the model's itself. Also, patching process will go over the same query builder instance.
+This time, the `on` method is not static. It operates on the context of the model that represents the resource and the model has its own query builder object. It will bind the event listener we provided to this query builder and return the model's itself. Also, patching will happen over the same query builder instance.
 
 ## Global Event Binding
 Sometimes we want to add event listeners to all queries to track events globally (app level).
