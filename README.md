@@ -374,12 +374,12 @@ We can use object syntax to organize field selection operations. To select field
 ```js
 const selections =
 {
-    // resource fields
-    "": [ "id", "title", "author_id" ],
-    // related resource fields
-    comments: [ "id", "author_id", "comment" ],
-    // deeply related resource fields
-    "comments.author": [ "id", "username" ],
+	// resource fields
+	"": [ "id", "title", "author_id" ],
+	// related resource fields
+	comments: [ "id", "author_id", "comment" ],
+	// deeply related resource fields
+	"comments.author": [ "id", "username" ],
 	// or
 	comments:
 	{
@@ -512,7 +512,7 @@ const { total } = paginator.page;
 ```
 
 ##### End
-The `end` property is a flag that indicates if the pagination is at the end and there are no more items to be fetched.
+The `end` property is a flag that indicates if the pagination is at the end and there are no more items to be fetched. It's a read-only property. The value of this property is calculated from the `currentPage` and `lastPage` properties.
 
 ```js
 const { end } = paginator.page;
@@ -562,7 +562,7 @@ paginator.forEach( post =>
 GET /api/v1.0/posts?limit=10&page=2&paginate=length-aware
 ```
 
-We used same paginator instance to access fetched models placed on it.
+We used same paginator instance to access fetched resources as models placed on it.
 
 ## Conditional Queries
 Sometimes, we might want to add a constraint to our query. To do this, we can use the `when` method. The first argument is a boolean expression, and the second is a callback function. The callback will receive query builder instance and the condition flag's value as arguments.
@@ -593,7 +593,7 @@ const posts = await Post
 GET /api/v1.0/posts?filter[author_id]=481516
 ```
 
-You have to be careful with falsy values. For example, if you pass `0` as an user ID, it will be considered as `false`, and the constraint block won't be executed even though it should by your perspective.
+You have to be careful with falsy values. For example, if you pass `0` as an user ID, it will be considered as `false`, and the constraint block won't be executed, even though it should by your perspective.
 
 ## Additional Params
 Sometimes, we might want to pass additional parameters to the query that restorm doesn't handle explicitly.
@@ -647,13 +647,13 @@ const reactions = await Reaction.from( post, comment, "reactions" ).all();
 GET /api/v1.0/posts/48/comments/4815/reactions
 ```
 
-# Crud Operations
+# CRUD Operations
 Restorm provides a set of methods that allow us to perform CRUD operations on RESTful resources, and we have seen above how to handle the `(R)ead` side by `get`, `all`, `find`, `first` methods.
 
 So let's see how to perform `(C)reate`, `(U)pdate` and `(D)elete` operations.
 
 ## Create
-On HTTP protocol, creation is done by sending a `POST` request to the RESTful api endpoints.
+On HTTP protocol, a resource creation should be performed by sending a `POST` request to the RESTful api endpoints.
 
 We designed a few alternative ways to create resources. First, we can create resources as model instances and send them.
 
@@ -786,7 +786,7 @@ And the resource should be like:
 # Event Management
 Restorm provides an event management system to handle network and server errors and events. 
 
-We can add event listeners to our queries or models. Events are kind of hooks that will be triggered when certain events happen.
+We can add event listeners to our queries, models or model instances. Events are kind of hooks that will be triggered when certain events happen.
 
 Since Restorm have this mechanism, it doesn't need to throw network and server errors. Restorm only throws runtime errors. So that means network errors and 400-500 errors will be suppressed and won't stop the application. We should grab and handle them manually.
 
@@ -795,26 +795,32 @@ We can add event listeners to any query builder or model. The event listeners wi
 We can register our listeners with `on` method.
 
 ## QueryBuilder Event Binding
-Note that if the `on` method on the models called statically, it will create a `QueryBuilder` instance, adds event listeners to it and returns it.
+Note that if the `on` method on the models called statically, it will create a `QueryBuilder` instance internally, adds event listener we passed to it and returns it.
 
 The event listeners that binded to a `QueryBuilder` will be valid only for that specific query builder instance.
 
 ```js
-const query1 = Post.on( "failed", err =>
+function gettingPostFailed( err )
+{
 	console.log( err )
-);
+}
+
+const query = Post.on( "failed", gettingPostFailed );
 
 const post = await query.find( 1 );
+// or shortly
+const post = await Post.on( "failed", gettingPostFailed ).find( 1 );
+
 const another = await Post.find( 2 );
 ```
 
-It will print the error object in the console when the api endpoint returns an 400, 500 http status code or a network error happens. But it won't log anything even if the second query has an error because it's running on a different query builder instance.
+It will print the error object in the console when the api endpoint returns an 400, 500 http status code or a network error happens. But it won't log anything even if the second query has an error because it's running on a different query builder instance and we didn't bind any event listener to it.
 
 ## Model Instance Event Binding
 As you know already, Restorm transforms remote resources into `Model` instances. We also can add event listeners to any model instance.
 
 ```js
-function onNotModified( post, response, data )
+function postNotModified( post, response, data )
 {
 	console.log ( post );
 
@@ -825,19 +831,24 @@ function onNotModified( post, response, data )
 const post = await Post.find( 1 );
 
 post.id = 12;
+post.on( 304, postNotModified );
 
-await post.on( 304, onNotModified ).patch();
+await post.patch();
 ```
 
-## Global Event Binding
-Sometimes we want to add event listeners to all queries to track something.
+This time `on` method is not static. That means it's on the same context with the model that represents the resource and model has it's own query builder object. It will bind the event listener that we gave it to this query builder and return the model's itself. Also, patching process will go over the same query builder instance.
 
-We can define global event listeners as `on` prefixed static methods like `onFailed` or `onSuccess`.
+## Global Event Binding
+Sometimes we want to add event listeners to all queries to track events globally (app level).
+
+We can define global event listeners as static methods on the models prefixed with `on` keyword like `onFailed` or `onSuccess`.
 
 ```js
-class BaseModel
+import { Model } from "@iceylan/restorm";
+
+class BaseModel extends Model
 {
-	onFailed( err )
+	static onFailed( err )
 	{
 		console.log( err );
 
@@ -850,4 +861,35 @@ const post = await Post.find( 1 );
 const other = await Post.find( 2 );
 ```
 
-Every child model of the `BaseModel` will inherit a listener for `failed` event and `QueryBuilder` instances created by the child models will inherit the listener as well.
+From now on, every child model of the `BaseModel` will inherit a listener for the `failed` event.
+
+We can overwrite the event listeners in child models.
+
+```js
+class Post extends BaseModel
+{
+	static onError( err )
+	{
+		alert( err.message );
+	}
+}
+```
+
+Now all errors of `Post` model will be displayed in alert dialog instead of console log.
+
+If we want, we can override parent model's event listeners instead of removing them.
+
+```js
+class Post extends BaseModel
+{
+	static onError( err )
+	{
+		super.onError( err );
+
+		alert( err.message );
+	}
+}
+```
+
+Now, `Post` model's errors will be logged to the console first and then an alert dialog will be displayed.
+
