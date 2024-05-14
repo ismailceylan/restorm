@@ -8,14 +8,14 @@ export default class Collection
 	/**
 	 * Holds original list of data.
 	 * 
-	 * @type {array}
+	 * @type {Model[]}
 	 */
 	data = [];
 
 	/**
 	 * Instantiate a collection that represents given array.
 	 * 
-	 * @param {array=} data a data list
+	 * @param {Model[]=} data a model list
 	 */
 	constructor( data = [])
 	{
@@ -36,7 +36,7 @@ export default class Collection
 	/**
 	 * Returns first item of the collection.
 	 * 
-	 * @return {*}
+	 * @return {Model}
 	 */
 	first()
 	{
@@ -46,7 +46,7 @@ export default class Collection
 	/**
 	 * Returns latest item of the collection.
 	 * 
-	 * @return {*}
+	 * @return {Model}
 	 */
 	last()
 	{
@@ -58,7 +58,7 @@ export default class Collection
 	 * of data.
 	 * 
 	 * @param {number} index position number
-	 * @return {*}
+	 * @return {Model}
 	 */
 	get( index )
 	{
