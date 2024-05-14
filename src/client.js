@@ -48,11 +48,13 @@ export default class Client
 	 */
 	get()
 	{
-		return this.http.get( this.query.getResource(),
-		{
-			signal: this.abortController.signal,
-			params: this.query.compile()
-		});
+		return this.http.get(
+			this.query.getResource(),
+			{
+				signal: this.abortController.signal,
+				params: this.query.compile()
+			}
+		);
 	}
 
 	/**
