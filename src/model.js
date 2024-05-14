@@ -526,7 +526,7 @@ export default class Model
 		{
 			const method = methods[ name ];
 
-			if( name.slice( 0, 2 ) == "on" )
+			if( name.startsWith( "on" ))
 			{
 				builder.on(
 					camelToDash( name.slice( 2 )),
