@@ -941,7 +941,7 @@ export default class QueryBuilder
 	/**
 	 * It takes the Response object, processes all the data and
 	 * metadata information it carries, and returns either a model
-	 * or a collection containing models, depending on the returned
+	 * or a collection that containing models, depending on the returned
 	 * data format.
 	 * 
 	 * @param {AxiosResponse} response response object

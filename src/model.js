@@ -1,6 +1,10 @@
 import { QueryBuilder } from ".";
 import { camelToDash } from "./utils";
 
+/**
+ * @typedef {import('axios').AxiosResponse} AxiosResponse
+ * @typedef {import('axios').AxiosError} AxiosError
+ */
 export default class Model
 {
 	/**
@@ -433,10 +437,10 @@ export default class Model
 	}
 
 	/**
-	 * @typedef eventListenerOptions
+	 * @typedef EventListenerOptions
 	 * @type {object}
-	 * @property {boolean} append true for append, false for replace mode
-	 * @property {boolean} once true for run the event once or false for
+	 * @property {boolean=} append true for append, false for replace mode
+	 * @property {boolean=} once true for run the event once or false for
 	 * keep it persistent
 	 */
 	/**
@@ -444,7 +448,7 @@ export default class Model
 	 * 
 	 * @param {string} evtName event name
 	 * @param {function} handler event handler
-	 * @param {eventListenerOptions} options options
+	 * @param {EventListenerOptions=} options options
 	 * @return {QueryBuilder}
 	 */
 	static on( evtName, handler, { append = true, once = false } = {})

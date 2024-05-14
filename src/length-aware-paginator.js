@@ -1,5 +1,8 @@
 import { Page, Collection, QueryBuilder } from ".";
 
+/**
+ * @typedef {import('axios').AxiosResponse} AxiosResponse
+ */
 export default class LengthAwarePaginator extends Collection
 {
 	/**
@@ -12,7 +15,7 @@ export default class LengthAwarePaginator extends Collection
 	/**
 	 * Response.
 	 * 
-	 * @type {Promise<AxiosResponse<any,any>>}
+	 * @type {Promise<AxiosResponse>}
 	 */
 	response = null;
 
@@ -61,6 +64,7 @@ export default class LengthAwarePaginator extends Collection
 	 * data property and returns paginator.
 	 * 
 	 * @return {Promise<Collection>}
+	 * @emits QueryBuilder#paginated
 	 */
 	ping()
 	{
@@ -84,7 +88,8 @@ export default class LengthAwarePaginator extends Collection
 	/**
 	 * Increments the current page number and ping again.
 	 * 
-	 * @return {Promise<Collection>}
+	 * @async
+	 * @return {Promise<LengthAwarePaginator>}
 	 */
 	next()
 	{

@@ -1,5 +1,8 @@
 import Axios from "axios";
 
+/**
+ * @typedef {import('axios').AxiosResponse} AxiosResponse
+ */
 export default class Client
 {
 	/**
@@ -41,7 +44,7 @@ export default class Client
 	 * Performs `GET` request and returns a promise to fullfill when
 	 * received a successful response.
 	 * 
-	 * @return {Promise<AxiosResponse<any,any>>}
+	 * @return {Promise<AxiosResponse>}
 	 */
 	get()
 	{
@@ -59,7 +62,7 @@ export default class Client
 	 * @param {string|number|object} primaryKeyValueOrPayload primary key
 	 * value or payload
 	 * @param {object=} payload payload object to put endpoint
-	 * @return {Promise<AxiosResponse<any,any>>}
+	 * @return {Promise<AxiosResponse>}
 	 */
 	put( primaryKeyValueOrPayload, payload )
 	{
@@ -82,7 +85,7 @@ export default class Client
 	 * received a succesfull response.
 	 * 
 	 * @param {object} payload field and values for patch resource
-	 * @return {Promise<AxiosResponse<any,any>>}
+	 * @return {Promise<AxiosResponse>}
 	 */
 	patch( payload )
 	{
