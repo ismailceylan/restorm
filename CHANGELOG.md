@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/ismailceylan/restorm/compare/v1.4.0...v1.5.0) (2024-05-14)
+
+
+### Features
+
+* add off method to remove events ([b923da3](https://github.com/ismailceylan/restorm/commit/b923da333cc4de364fddde520a69b0415de099e6))
+
+
+### Bug Fixes
+
+* **model:** use common query builder on model instances ([755f8f1](https://github.com/ismailceylan/restorm/commit/755f8f1b8eea5df1c3ac05bf8231164fba4338c7))
+
 ## [1.4.0](https://github.com/ismailceylan/restorm/compare/v1.3.1...v1.4.0) (2024-05-05)
 
 
