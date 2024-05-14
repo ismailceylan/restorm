@@ -34,13 +34,6 @@ export default class LengthAwarePaginator extends Collection
 	isPending = false;
 
 	/**
-	 * Latest promise.
-	 * 
-	 * @type {Promise<Collection>}
-	 */
-	latestPromise = Promise.resolve( new Collection );
-
-	/**
 	 * Instantiate length aware paginator.
 	 * 
 	 * @param {QueryBuilder} builder query builder instance
@@ -72,7 +65,7 @@ export default class LengthAwarePaginator extends Collection
 
 		this.isPending = true;
 
-		return this.latestPromise = this.builder
+		return this.builder
 			.on( "finished", () => this.isPending = false, once )
 			.on( 204, () => this.data = [], once )
 			.on( 200, ( collection, response, data ) =>
@@ -91,16 +84,18 @@ export default class LengthAwarePaginator extends Collection
 	 * @async
 	 * @return {Promise<LengthAwarePaginator>}
 	 */
-	next()
+	async next()
 	{
 		if( this.page.end || this.isPending )
 		{
-			return this.latestPromise;
+			return this;
 		}
 
 		this.builder.page( this.page.currentPage + 1 );
 
-		return this.ping();
+		await this.ping();
+
+		return this;
 	}
 
 	#hydrateMeta( responseBody )
