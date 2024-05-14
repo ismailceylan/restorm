@@ -83,6 +83,24 @@ export default class Client
 	}
 
 	/**
+	 * Performs a `POST` request and returns a promise to fulfill when
+	 * a successful response is received.
+	 *
+	 * @param {object} payload - the data to be sent in the request
+	 * @return {Promise<AxiosResponse>} a promise that resolves with the response data
+	 */
+	post( payload )
+	{
+		return this.http.post(
+			this.query.getResource(),
+			payload,
+			{
+				signal: this.abortController.signal
+			}
+		);
+	}
+
+	/**
 	 * Performs `PATCH` request and returns a promise to fullfil when
 	 * received a succesfull response.
 	 * 

@@ -1,4 +1,4 @@
-import { QueryBuilder } from ".";
+import { Collection, QueryBuilder } from ".";
 import { camelToDash } from "./utils";
 
 /**
@@ -622,9 +622,38 @@ export default class Model
 		return this;
 	}
 
-	post( payload )
+	/**
+	 * Sends the given payload or the represented model with `POST`
+	 * request to the represented model's resource endpoint.
+	 * 
+	 * @param {object=} payload data object to be sent to the api endpoint
+	 * @return {Promise<Error|Model>}
+	 * @throws {Error} when the model has a primary key
+	 */
+	async post( payload )
 	{
-		
+		if( this.primary || payload?.[ this.constructor.primaryKey ])
+		{
+			throw new Error( "Cannot call post() on a model with a primary key" );
+		}
+
+		const { query } = this;
+
+		const result = await query.request(() =>
+			query.client.post( payload || { ...this.original, ...this.modified })
+		);
+
+		if( result instanceof Error )
+		{
+			return result;
+		}
+
+		if( result.hydrated instanceof Collection )
+		{
+			return result.hydrated.first();
+		}
+
+		return result.hydrated;
 	}
 
 	/**
