@@ -783,18 +783,19 @@ export default class QueryBuilder
 	{
 		if( ! ( evtName in this.events ))
 		{
-			this.events[ evtName ] = [];
+			this.events[ evtName ] = new Set;
 		}
-		
+
 		handler[ symOnce ] = once;
 
 		if( append )
 		{
-			this.events[ evtName ].push( handler );
+			this.events[ evtName ].add( handler );
 		}
 		else
 		{
-			this.events[ evtName ] = [ handler ];
+			this.events[ evtName ].clean();
+			this.events[ evtName ].add( handler );
 		}
 
 		return this;
@@ -814,9 +815,7 @@ export default class QueryBuilder
 			return this;
 		}
 
-		const handlerPos = this.events[ evtName ].indexOf( handler );
-
-		this.events[ evtName ].splice( handlerPos, 1 );
+		this.events[ evtName ].delete( handler );
 
 		return this;
 	}
@@ -838,13 +837,18 @@ export default class QueryBuilder
 			);
 		}
 
-		( this.events[ evtNames ] || []).forEach(( handler, i ) =>
+		if( ! ( evtNames in this.events ))
+		{
+			return this;
+		}
+
+		this.events[ evtNames ].forEach( handler =>
 		{
 			handler.call( this, ...args );
 
 			if( handler[ symOnce ])
 			{
-				this.events[ evtNames ].splice( i, 1 );
+				this.events[ evtNames ].delete( handler );
 			}
 		});
 
