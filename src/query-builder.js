@@ -801,6 +801,27 @@ export default class QueryBuilder
 	}
 
 	/**
+	 * Removes the specified event handler from the events list.
+	 *
+	 * @param {string} evtName the name of the event
+	 * @param {function} handler the handler function to be removed
+	 * @return {QueryBuilder}
+	 */
+	off( evtName, handler )
+	{
+		if( ! ( evtName in this.events ))
+		{
+			return this;
+		}
+
+		const handlerPos = this.events[ evtName ].indexOf( handler );
+
+		this.events[ evtName ].splice( handlerPos, 1 );
+
+		return this;
+	}
+
+	/**
 	 * It executes all event listener methods registered for the
 	 * given named event by passing the given argument list.
 	 * 

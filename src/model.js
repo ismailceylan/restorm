@@ -703,6 +703,18 @@ export default class Model
 	}
 
 	/**
+	 * Removes the specified event handler from the events list.
+	 *
+	 * @param {string} evtName the name of the event
+	 * @param {function} handler the handler function to be removed
+	 * @return {QueryBuilder}
+	 */
+	off( evtName, handler )
+	{
+		return this.query.off( evtName, handler );
+	}
+
+	/**
 	 * It stores a method that will perform cast operations on a
 	 * given field of the resource.
 	 * 
