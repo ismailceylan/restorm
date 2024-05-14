@@ -101,6 +101,6 @@ export default class LengthAwarePaginator extends Collection
 	#hydrateMeta( responseBody )
 	{
 		this.page = new Page;		
-		this.builder.model.$pluckPaginations( responseBody, this.page );
+		this.builder.model.$pluckPaginations( this.page, responseBody );
 	}
 }
