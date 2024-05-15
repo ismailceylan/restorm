@@ -764,8 +764,7 @@ const article = new Article({ id: 1 });
 // and we can send a `PUT` request for a model
 await article.put( state );
 
-// or we just can directly send a `PUT` request statically
-// if we sure that the resource exists
+// or shortly we can use static syntax
 await Article.put( 1, state );
 ```
 
@@ -801,8 +800,8 @@ The event listeners that binded to a `QueryBuilder` will be valid only for that 
 
 ```js
 const query = Post.on( "failed", gettingPostFailed );
-
 const post = await query.find( 1 );
+
 // or shortly
 const post = await Post.on( "failed", gettingPostFailed ).find( 1 );
 
@@ -814,7 +813,25 @@ function gettingPostFailed( err )
 }
 ```
 
-It will print the error object in the console when the api endpoint returns an 400, 500 http status code or a network error happens. But it won't log anything even if the second query has an error because it's running on a different query builder instance and we didn't bind any event listener to it.
+The first query will print the error object in the console when the api endpoint returns an 400, 500 http status code or a network error happens. But the second query won't log anything even if it has an error because it's running on a different query builder instance and we didn't bind any event listener to it.
+
+We can easily remove the event listeners by using `off` method.
+
+```js
+query.off( "failed", gettingPostFailed );
+```
+
+If we have chosen to use chained syntax, using the `off` method becomes pointless.
+
+We can also add event listeners to execute only once by using `once` property while we bind the event.
+
+```js
+query.on( "failed", gettingPostFailed, { once: true });
+// or
+const post = await Post
+	.on( "failed", gettingPostFailed, { once: true })
+	.find( 1 );
+```
 
 ## Model Instance Event Binding
 As you know already, Restorm transforms remote resources into `Model` instances. We also can add event listeners to any model instance.
@@ -838,10 +855,12 @@ function postNotModified( post, response, data )
 }
 ```
 
-This time, the `on` method is not static. It operates on the context of the model that represents the resource and the model has its own query builder object. It will bind the event listener we provided to this query builder and return the model's itself. Also, patching will happen over the same query builder instance.
+This time, the `on` method is not static. It operates on the context of the model that represents the resource and the model has its own query builder instance. It will bind the event listener we provided to this query builder and return the model's itself. Also, patching will happen over the same `QueryBuilder` instance.
+
+We can remove the event listener by using `off` method and make event listener to run only once by using `once` property just like above.
 
 ## Global Event Binding
-Sometimes we want to add event listeners to all queries to track events globally (app level).
+Sometimes we might want to add event listeners to all queries to track events globally (app level).
 
 We can define global event listeners as static methods on the models prefixed with `on` keyword like `onFailed` or `onSuccess`.
 
@@ -860,7 +879,6 @@ class BaseModel extends Model
 }
 
 const post = await Post.find( 1 );
-const other = await Post.find( 2 );
 ```
 
 From now on, every child model of the `BaseModel` will inherit a listener for the `failed` event.
@@ -870,28 +888,31 @@ We can overwrite the event listeners in child models.
 ```js
 class Post extends BaseModel
 {
-	static onError( err )
+	static onFailed( err )
 	{
 		alert( err.message );
 	}
 }
 ```
 
-Now all errors of `Post` model will be displayed in alert dialog instead of console log.
+Now all errors of `Post` model will be displayed in alert dialog instead of console.
 
-If we want, we can override parent model's event listeners instead of removing them.
+If we want, we can extend parent model's event listeners instead of overwriting them.
 
 ```js
 class Post extends BaseModel
 {
-	static onError( err )
+	static onFailed( err )
 	{
-		super.onError( err );
+		super.onFailed( err );
 
 		alert( err.message );
 	}
 }
 ```
 
-Now, `Post` model's errors will be logged to the console first and then an alert dialog will be displayed.
+Now, first, the errors that related to `Post` model will be logged to the console and then an alert dialog will be displayed.
 
+Restorm currently doesn't support a way to explicitly removing event listeners that inherited from parent models. But at least, we can overwrite them and left it empty. With that way, the listener still will be there and it will be triggered but with no effect.
+
+In a general context, multiple event listeners can be added for a single event. The bound event listeners will be executed in the order they were bound when the event occurs.
