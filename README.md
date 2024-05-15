@@ -874,7 +874,7 @@ const post = ( await Post.find( 1 ))
 	.patch();
 ```
 
-We can remove the event listener by using `off` method and make event listener to run only once by using `once` property just like above.
+We can still remove the event listener by using `off` method and make event listener to run only once by using `once` property just like above.
 
 ## Global Event Binding
 Sometimes we might want to add event listeners to all queries to track events globally (app level).
@@ -912,7 +912,7 @@ class Post extends BaseModel
 }
 ```
 
-Now all errors of `Post` model will be displayed in alert dialog instead of console.
+Now, all the failed queries of the `Post` model will be displayed in alert dialog instead of console.
 
 If we want, we can extend parent model's event listeners instead of overwriting them.
 
@@ -928,8 +928,18 @@ class Post extends BaseModel
 }
 ```
 
-Now, first, the errors that related to `Post` model will be logged to the console and then an alert dialog will be displayed.
+Now, first, failed queries that related to the `Post` model will be logged to the console and then an alert dialog will be displayed.
 
-Restorm currently doesn't support a way to explicitly removing event listeners that inherited from parent models. But at least, we can overwrite them and left it empty. With that way, the listener still will be there and it will be triggered but with no effect.
+Restorm currently doesn't support a way to explicitly removing event listeners that inherited from parent models. But at least, we can overwrite them and left it's body empty. With that way, the listener will still be there and it will be triggered but with no effect.
 
-## Events
+## Events List
+| Event Name      | When                   |
+| --------------: | ---------------------- |
+| `waiting`       | request is initiated and waiting for the response |
+| `success`       | request was successful with a status code in the 2xx range |
+| `failed`        | request was failed with a status code that is not in the 2xx range |
+| `finished`      | request is finished, regardless of its outcome |
+| `canceled`      | request is canceled by Restorm or the user |
+| `paginated`     | request is finished, pagination is ready |
+| `network-error` | request failed due to a network level error |
+| [StatusCodes]   | request is finished and the server responds with the corresponding status code. For example, if the server responds with a 404 status code, the `404` event is triggered. The event is triggered even if the request failed. |
