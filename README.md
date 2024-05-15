@@ -785,7 +785,7 @@ And the resource should be like:
 # Event Management
 Restorm provides an event management system to handle network errors, server errors and internal events. 
 
-We can add event listeners to our queries, models or model instances. Events are kind of hooks that will be triggered when certain events happen.
+We can bind event listeners to our queries, models or model instances. Events are kind of hooks that will be triggered when certain events happen.
 
 Since Restorm have this mechanism, it doesn't need to throw network and server errors. Restorm only throws runtime errors. So that means network errors and 400-500 errors will be suppressed and won't stop the application. We should grab and handle them manually.
 
@@ -793,17 +793,13 @@ We can add event listeners to any query builder, model or model instance. The ev
 
 We can register our listeners with `on` method.
 
+Multiple event listeners can be added for a single event. The bound event listeners will be executed in the order they were bound when the event occurs.
+
 ## QueryBuilder Event Binding
-Note that if the `on` method on the models called statically, it will create a `QueryBuilder` instance internally, adds event listener we passed to it and returns it.
-
-The event listeners that binded to a `QueryBuilder` will be valid only for that specific query builder instance.
-
 ```js
-const query = Post.on( "failed", gettingPostFailed );
-const post = await query.find( 1 );
-
-// or shortly
-const post = await Post.on( "failed", gettingPostFailed ).find( 1 );
+const post = await Post
+	.on( "failed", gettingPostFailed )
+	.find( 1 );
 
 const another = await Post.find( 2 );
 
@@ -812,22 +808,34 @@ function gettingPostFailed( err )
 	console.log( err )
 }
 ```
+Note that if the `on` method on the models called statically just like the above, it will create a `QueryBuilder` instance internally, binds the event listener we passed to it and returns query builder instance.
+
+The event listeners that bound to a `QueryBuilder` will be effective only for that specific query builder instance.
 
 The first query will print the error object in the console when the api endpoint returns an 400, 500 http status code or a network error happens. But the second query won't log anything even if it has an error because it's running on a different query builder instance and we didn't bind any event listener to it.
 
-We can easily remove the event listeners by using `off` method.
+We can easily remove the event listeners by using `off` method but we should extract the `QueryBuilder` instance when using static methods of a models.
 
 ```js
+const query = Post.on( "failed", gettingPostFailed );
+const post = await query.find( 1 );
+
 query.off( "failed", gettingPostFailed );
+
+const anotherPost = await query.find( 2 );
 ```
 
-If we have chosen to use chained syntax, using the `off` method becomes pointless.
+Even if the second query has an error, it won't be logged because we unbound the event listener from it.
 
-We can also add event listeners to execute only once by using `once` property while we bind the event.
+We can also make event listeners to execute only once by using `once` property while we bind the event.
 
 ```js
-query.on( "failed", gettingPostFailed, { once: true });
+const post = await query
+	.on( "failed", gettingPostFailed, { once: true })
+	.find( 1 );
+
 // or
+
 const post = await Post
 	.on( "failed", gettingPostFailed, { once: true })
 	.find( 1 );
@@ -855,7 +863,16 @@ function postNotModified( post, response, data )
 }
 ```
 
-This time, the `on` method is not static. It operates on the context of the model that represents the resource and the model has its own query builder instance. It will bind the event listener we provided to this query builder and return the model's itself. Also, patching will happen over the same `QueryBuilder` instance.
+This time, the `on` method is not static. It operates on the context of the model that represents the resource and the model has its own query builder instance. It will bind the event listener we provided to this query builder and return the model's itself. Also, patching will happen over the same `QueryBuilder` instance. So we were able to chain all those methods in one line.
+
+We could write same code more compactly like this:
+
+```js
+const post = ( await Post.find( 1 ))
+	.set( "id", 12 )
+	.on( 304, ( post, response, data ) => console.log( post ))
+	.patch();
+```
 
 We can remove the event listener by using `off` method and make event listener to run only once by using `once` property just like above.
 
@@ -915,4 +932,4 @@ Now, first, the errors that related to `Post` model will be logged to the consol
 
 Restorm currently doesn't support a way to explicitly removing event listeners that inherited from parent models. But at least, we can overwrite them and left it empty. With that way, the listener still will be there and it will be triggered but with no effect.
 
-In a general context, multiple event listeners can be added for a single event. The bound event listeners will be executed in the order they were bound when the event occurs.
+## Events
