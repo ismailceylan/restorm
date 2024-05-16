@@ -789,8 +789,6 @@ We can bind event listeners to our queries, models or model instances. Events ar
 
 Since Restorm have this mechanism, it doesn't need to throw network and server errors. Restorm only throws runtime errors. So that means network errors and 400-500 errors will be suppressed and won't stop the application. We should grab and handle them manually.
 
-We can add event listeners to any query builder, model or model instance. The event listeners will be triggered when the query is executed.
-
 We can register our listeners with `on` method.
 
 Multiple event listeners can be added for a single event. The bound event listeners will be executed in the order they were bound when the event occurs.
@@ -808,6 +806,7 @@ function gettingPostFailed( err )
 	console.log( err )
 }
 ```
+
 Note that if the `on` method on the models called statically just like the above, it will create a `QueryBuilder` instance internally, binds the event listener we passed to it and returns query builder instance.
 
 The event listeners that bound to a `QueryBuilder` will be effective only for that specific query builder instance.
@@ -842,7 +841,7 @@ const post = await Post
 ```
 
 ## Model Instance Event Binding
-As you know already, Restorm transforms remote resources into `Model` instances. We also can add event listeners to any model instance.
+As you know already, Restorm transforms remote resources into `Model` instances. We also can bind event listeners to any model instance.
 
 ```js
 const post = await Post.find( 1 );
@@ -863,21 +862,20 @@ function postNotModified( post, response, data )
 }
 ```
 
-This time, the `on` method is not static. It operates on the context of the model that represents the resource and the model has its own query builder instance. It will bind the event listener we provided to this query builder and return the model's itself. Also, patching will happen over the same `QueryBuilder` instance. So we were able to chain all those methods in one line.
+This time, the `on` method is not static. It operates on the context of the model that represents the resource and that model has its own query builder instance. It will bind the event listener we provided to this query builder and return the model's itself. Also, patching will happen over the same `QueryBuilder` instance. So we were able to chain all those methods in one line.
+
+We can still remove the event listener by using `off` method and make event listener to run only once by using `once` property just like above.
 
 We could write same code more compactly like this:
 
 ```js
 const post = ( await Post.find( 1 ))
-	.set( "id", 12 )
 	.on( 304, ( post, response, data ) => console.log( post ))
-	.patch();
+	.patch({ id: 12 });
 ```
 
-We can still remove the event listener by using `off` method and make event listener to run only once by using `once` property just like above.
-
 ## Global Event Binding
-Sometimes we might want to add event listeners to all queries to track events globally (app level).
+Sometimes we might want to bind event listeners for all queries to track events globally (app level).
 
 We can define global event listeners as static methods on the models prefixed with `on` keyword like `onFailed` or `onSuccess`.
 
@@ -933,13 +931,196 @@ Now, first, failed queries that related to the `Post` model will be logged to th
 Restorm currently doesn't support a way to explicitly removing event listeners that inherited from parent models. But at least, we can overwrite them and left it's body empty. With that way, the listener will still be there and it will be triggered but with no effect.
 
 ## Events List
-| Event Name      | When                   |
-| --------------: | ---------------------- |
+| Event Name      | When |
+| --------------- | ---- |
 | `waiting`       | request is initiated and waiting for the response |
-| `success`       | request was successful with a status code in the 2xx range |
+| `success`       | request was successful with a status code >= 300 range |
 | `failed`        | request was failed with a status code that is not in the 2xx range |
 | `finished`      | request is finished, regardless of its outcome |
 | `canceled`      | request is canceled by Restorm or the user |
 | `paginated`     | request is finished, pagination is ready |
 | `network-error` | request failed due to a network level error |
-| [StatusCodes]   | request is finished and the server responds with the corresponding status code. For example, if the server responds with a 404 status code, the `404` event is triggered. The event is triggered even if the request failed. |
+| [StatusCodes]   | request is finished and the server responds with the corresponding status code. For example, if the server responds with a 404 status code, the `404` event is triggered. |
+
+# Collections
+Restorm provides a structure for handling a set of model instances.
+
+It implements array interface. That means we can use a collection like an array, put it into a `for` loops, `Array.from(collection)` or `[...collection]`.
+
+Moreover, the `Collection` class's prototype is behind a Proxy. This way, we can use short array syntax and get items like `posts[2]`.
+
+Collections methods will never return arrays. Instead, they will always return `Collection` instances which encapsulate those arrays. With this behavior, we can say collections are immutable.
+
+## Getting a Collection
+The `all` method returns a promise that will be fulfilled with a collection of model instances.
+
+```js
+const posts = await Post.all();
+```
+
+Now, we have a model collection baked by Restorm. Let's see what we can do with it.
+
+## Getting Collection Size
+We can get the size of the collection using `size` property. It's a read only property.
+
+```js
+console.log( posts.size );
+```
+
+Also, we can use `length` property instead.
+
+```js
+console.log( posts.length );
+```
+
+## First Item
+We can easily grab the first item of the collection.
+
+```js
+console.log( posts.first());
+```
+
+Array syntax is also supported.
+
+```js
+console.log( posts[ 0 ]);
+```
+
+It returns a `Model` or `undefined` if the collection is empty.
+
+## Last Item
+Getting the last item is easy as well as getting the first item.
+
+```js
+console.log( posts.last());
+// Model or undefined
+```
+
+With array syntax we can get the last item.
+
+```js
+console.log( posts[ posts.length - 1 ]);
+```
+
+## Get Item by Position
+If we want to get an item by its position in the collection, we can use `get` method.
+
+```js
+console.log( posts.get( 3 ));
+```
+
+It returns a `Model` or `undefined` if the position is out of bounds.
+
+With array syntax:
+
+```js
+console.log( posts[ 3 ]);
+```
+
+## Array Methods
+We can use all the array methods on collections. The return value will always be a collection. That makes the collections immutable.
+
+```js
+const titles = posts.map( post => post.title );
+
+// titles is a new collection
+console.log( titles.last());
+```
+
+If the array method we used is kind of a doesn't return anything, it will return the collection we're working on.
+
+```js
+const size = posts
+	.forEach( console.log )
+	.size();
+```
+
+## Looping
+We can use all the array looping methods on collections or we just can use `for` loops.
+
+```js
+posts
+	.pluck( "title" )
+	.filter( title => title.startsWith( "Hello" ))
+	.map( title => title.toUpperCase())
+	.forEach( console.log );
+```
+
+Or we can use `for` loops.
+
+```js
+for ( const post of posts )
+{
+	if( post.title.startsWith( "Hello" ))
+	{
+		post.title = post.title.toUpperCase();
+		console.log( post.title );
+	}
+}
+```
+
+## Plucking
+Sometimes we need only a specific field from the model. We can use the `pluck` method to collect those fields and get them as a brand new collection.
+
+```js
+const titles = posts.pluck( "title" );
+
+console.log( titles.last());
+```
+
+## Converting to Array
+If we need to convert the collection to an plain array, we have a few options.
+
+### Array.from
+Every collection carries an iterator interface on it.
+
+```js
+console.log( Array.from( posts ));
+```
+
+It will kick iterator interface and collects all the items as an array. But this will be slow because it uses loop under the hood.
+
+### [...collection]
+We can use the spread operator to convert the collection to an array.
+
+```js
+console.log([ ...posts ]);
+```
+
+Behind the scenes, it also uses the iterator interface. So, the same scenario will be in action like above.
+
+### Collection.toArray() or Collection.data
+Since we already hold the initial list in the collection on the `data` property as a plain array, the only thing we need to do is just return it. `toArray` method just does that.
+
+```js
+console.log( posts.toArray());
+```
+
+We can also access `data` property directly but it's not recommended. We may make it private in the future or something like that.
+
+```js
+// might work, but don't do this
+console.log( posts.data );
+```
+
+## Converting to JSON
+Sometimes we need to convert the collection and the data to JSON as a whole. `toJson` method will do it for us.
+
+```js
+console.log( posts.toJson());
+```
+
+And the result will be like:
+
+```json
+[
+	{
+		"id": 1,
+		"title": "Post 1"
+	},
+	{
+		"id": 2,
+		"title": "Post 2"
+	}
+]
+```
