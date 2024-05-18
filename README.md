@@ -795,10 +795,7 @@ Multiple event listeners can be added for a single event. The bound event listen
 
 ## QueryBuilder Event Binding
 ```js
-const post = await Post
-	.on( "failed", gettingPostFailed )
-	.find( 1 );
-
+const post = await Post.on( "failed", gettingPostFailed ).find( 1 );
 const another = await Post.find( 2 );
 
 function gettingPostFailed( err )
@@ -824,7 +821,7 @@ query.off( "failed", gettingPostFailed );
 const anotherPost = await query.find( 2 );
 ```
 
-Even if the second query has an error, it won't be logged because we unbound the event listener from it.
+Even if the second attempt has an error, it won't be logged because we unbound the event listener from it.
 
 We can also make event listeners to execute only once by using `once` property while we bind the event.
 
@@ -846,12 +843,14 @@ As you know already, Restorm transforms remote resources into `Model` instances.
 ```js
 const post = await Post.find( 1 );
 
-post.id = 12;
+// we can make changes step by step
+post.title = "Lorem ipsum";
 post.on( 304, postNotModified );
 
 await post.patch();
-// or shortly
-await post.on( 304, postNotModified ).patch();
+
+// we can remove the event listener
+post.off( 304, postNotModified );
 
 function postNotModified( post, response, data )
 {
@@ -862,16 +861,24 @@ function postNotModified( post, response, data )
 }
 ```
 
-This time, the `on` method is not static. It operates on the context of the model that represents the resource and that model has its own query builder instance. It will bind the event listener we provided to this query builder and return the model's itself. Also, patching will happen over the same `QueryBuilder` instance. So we were able to chain all those methods in one line.
+This time, the `on` method is not static. It operates on the context of the model that represents the resource and every model has its own query builder instance. It will bind the event listener we provided to the query builder that under the hood and return the model's itself, so we can chain. After that, patching happened over the same `QueryBuilder` instance.
 
-We can still remove the event listener by using `off` method and make event listener to run only once by using `once` property just like above.
+We removed the event listener by using `off` method right after the patch request complete. But we could also use `once` property to make event listener to run only once. With that we couldn't need to unbind the event listener manually.
 
 We could write same code more compactly like this:
 
 ```js
-const post = ( await Post.find( 1 ))
-	.on( 304, ( post, response, data ) => console.log( post ))
-	.patch({ id: 12 });
+await ( await Post.find( 1 ))
+	.on( 304, console.log, { once: true })
+	.patch({ title: "Lorem ipsum" });
+```
+
+That would send two requests to the server. To reduce the number of requests, we can rewrite it like this:
+
+```js
+await Post
+	.on( 304, console.log, { once: true })
+	.patch( 1, { title: "Lorem ipsum" });
 ```
 
 ## Global Event Binding
@@ -943,13 +950,7 @@ Restorm currently doesn't support a way to explicitly removing event listeners t
 | [StatusCodes]   | request is finished and the server responds with the corresponding status code. For example, if the server responds with a 404 status code, the `404` event is triggered. |
 
 # Collections
-Restorm provides a structure for handling a set of model instances.
-
-It implements array interface. That means we can use a collection like an array, put it into a `for` loops, `Array.from(collection)` or `[...collection]`.
-
-Moreover, the `Collection` class's prototype is behind a Proxy. This way, we can use short array syntax and get items like `posts[2]`.
-
-Collections methods will never return arrays. Instead, they will always return `Collection` instances which encapsulate those arrays. With this behavior, we can say collections are immutable.
+Restorm provides a structure for handling a set of model instances. We prefer to call it a collection. It extends native `Array` constructor. So we can say that collections a specialized type of array.
 
 ## Getting a Collection
 The `all` method returns a promise that will be fulfilled with a collection of model instances.
@@ -958,20 +959,7 @@ The `all` method returns a promise that will be fulfilled with a collection of m
 const posts = await Post.all();
 ```
 
-Now, we have a model collection baked by Restorm. Let's see what we can do with it.
-
-## Getting Collection Size
-We can get the size of the collection using `size` property. It's a read only property.
-
-```js
-console.log( posts.size );
-```
-
-Also, we can use `length` property instead.
-
-```js
-console.log( posts.length );
-```
+Now, we have a collection that holds models baked by Restorm. Let's see what we can do with it.
 
 ## First Item
 We can easily grab the first item of the collection.
@@ -980,147 +968,30 @@ We can easily grab the first item of the collection.
 console.log( posts.first());
 ```
 
-Array syntax is also supported.
-
-```js
-console.log( posts[ 0 ]);
-```
-
-It returns a `Model` or `undefined` if the collection is empty.
-
 ## Last Item
 Getting the last item is easy as well as getting the first item.
 
 ```js
 console.log( posts.last());
-// Model or undefined
+// item or undefined
 ```
 
-With array syntax we can get the last item.
-
-```js
-console.log( posts[ posts.length - 1 ]);
-```
-
-## Get Item by Position
-If we want to get an item by its position in the collection, we can use `get` method.
-
-```js
-console.log( posts.get( 3 ));
-```
-
-It returns a `Model` or `undefined` if the position is out of bounds.
-
-With array syntax:
-
-```js
-console.log( posts[ 3 ]);
-```
-
-## Array Methods
-We can use all the array methods on collections. The return value will always be a collection. That makes the collections immutable.
-
-```js
-const titles = posts.map( post => post.title );
-
-// titles is a new collection
-console.log( titles.last());
-```
-
-If the array method we used is kind of a doesn't return anything, it will return the collection we're working on.
-
-```js
-const size = posts
-	.forEach( console.log )
-	.size();
-```
-
-## Looping
-We can use all the array looping methods on collections or we just can use `for` loops.
-
-```js
-posts
-	.pluck( "title" )
-	.filter( title => title.startsWith( "Hello" ))
-	.map( title => title.toUpperCase())
-	.forEach( console.log );
-```
-
-Or we can use `for` loops.
-
-```js
-for ( const post of posts )
-{
-	if( post.title.startsWith( "Hello" ))
-	{
-		post.title = post.title.toUpperCase();
-		console.log( post.title );
-	}
-}
-```
+With array syntax we could use `posts[ posts.length - 1 ]`.
 
 ## Plucking
-Sometimes we need only a specific field from the model. We can use the `pluck` method to collect those fields and get them as a brand new collection.
+Sometimes we need only a specific field from the models (or objects). We can use the `pluck` method to collect values of those field and get them as a brand new collection.
 
 ```js
-const titles = posts.pluck( "title" );
-
-console.log( titles.last());
-```
-
-## Converting to Array
-If we need to convert the collection to an plain array, we have a few options.
-
-### Array.from
-Every collection carries an iterator interface on it.
-
-```js
-console.log( Array.from( posts ));
-```
-
-It will kick iterator interface and collects all the items as an array. But this will be slow because it uses loop under the hood.
-
-### [...collection]
-We can use the spread operator to convert the collection to an array.
-
-```js
-console.log([ ...posts ]);
-```
-
-Behind the scenes, it also uses the iterator interface. So, the same scenario will be in action like above.
-
-### Collection.toArray() or Collection.data
-Since we already hold the initial list in the collection on the `data` property as a plain array, the only thing we need to do is just return it. `toArray` method just does that.
-
-```js
-console.log( posts.toArray());
-```
-
-We can also access `data` property directly but it's not recommended. We may make it private in the future or something like that.
-
-```js
-// might work, but don't do this
-console.log( posts.data );
+console.log(
+	posts.pluck( "title" ).last()
+);
 ```
 
 ## Converting to JSON
-Sometimes we need to convert the collection and the data to JSON as a whole. `toJson` method will do it for us.
+Sometimes we need to convert the collection to JSON as a whole. `toJson` method will do it for us.
 
 ```js
 console.log( posts.toJson());
-```
-
-And the result will be like:
-
-```json
-[
-	{
-		"id": 1,
-		"title": "Post 1"
-	},
-	{
-		"id": 2,
-		"title": "Post 2"
-	}
-]
+// equivalent to
+console.log( JSON.stringify( posts ));
 ```
