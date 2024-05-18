@@ -67,12 +67,15 @@ export default class LengthAwarePaginator extends Collection
 
 		return this.builder
 			.on( "finished", () => this.isPending = false, once )
-			.on( 204, () => this.data = [], once )
+			.on( 204, () => this.length = 0, once )
 			.on( 200, ( collection, response, data ) =>
 			{
-				this.data = collection.data;
+				this.length = 0;
 				this.response = response;
+
+				this.push( ...collection );
 				this.#hydrateMeta( response.data );
+				
 				this.builder.trigger( "paginated", [ this, response, data ]);
 			}, once )
 			.all();

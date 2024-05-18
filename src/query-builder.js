@@ -413,7 +413,7 @@ export default class QueryBuilder
 
 		if( result instanceof Model )
 		{
-			return new Collection([ result ]);
+			return new Collection( ...result );
 		}
 		else if( result instanceof Collection )
 		{
@@ -968,7 +968,7 @@ export default class QueryBuilder
 		else if( Array.isArray( data ))
 		{
 			return new Collection(
-				data.map( item =>
+				...data.map( item =>
 					new this.model( item, casts )
 				)
 			);
