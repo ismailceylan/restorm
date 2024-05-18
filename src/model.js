@@ -590,6 +590,11 @@ export default class Model
 	 */
 	static [ Symbol.hasInstance ]( instance )
 	{
+		if( instance?.constructor === undefined )
+		{
+			return false;
+		}
+
 		return this instanceof instance.constructor;
 	}
 
