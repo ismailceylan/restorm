@@ -237,11 +237,11 @@ export default class QueryBuilder
 		if( isPlainObject( fieldNameOrWhereMap ))
 		{
 			flatObject( fieldNameOrWhereMap ).forEach( item =>
-				this.wheres.push(
-				[
-					new Field( item.key ),
-					new Value( item.value )
-				])
+				this.where(
+					item.key,
+					item.value,
+					operatorOrCondition
+				)
 			);
 		}
 		else
@@ -294,11 +294,10 @@ export default class QueryBuilder
 		if( isPlainObject( fieldNameOrOrderByMap ))
 		{
 			flatObject( fieldNameOrOrderByMap ).forEach( item =>
-				this.orderBys.push(
-				[
-					new Field( item.key ),
+				this.orderBy(
+					item.key,
 					item.value
-				])
+				)
 			);
 		}
 		else
