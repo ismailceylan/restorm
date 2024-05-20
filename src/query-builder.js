@@ -25,7 +25,7 @@ export default class QueryBuilder
 	/**
 	 * Wheres.
 	 * 
-	 * @type {array}
+	 * @type {array[]}
 	 */
 	wheres = [];
 
@@ -39,7 +39,7 @@ export default class QueryBuilder
 	/**
 	 * Selected fields.
 	 * 
-	 * @type {array}
+	 * @type {array[]}
 	 */
 	selects = [];
 

@@ -119,11 +119,9 @@ The `get` method creates a request to access all resources under the root direct
 `get` will autodetect the returned resource type and return a promise that will be fulfilled with an instance of the `model` or `collection` of models.
 
 ```js
-import { Model } from "@iceylan/restorm";
-
 const result = await Post.where( conditions ).get();
 
-if( result instanceof Model )
+if( result instanceof Post )
 {
 	console.log( result.title );
 }
@@ -939,15 +937,15 @@ Restorm currently doesn't support a way to explicitly removing event listeners t
 
 ## Events List
 | Event Name      | When |
-| --------------- | ---- |
+| :-------------- | :--- |
 | `waiting`       | request is initiated and waiting for the response |
-| `success`       | request was successful with a status code >= 300 range |
-| `failed`        | request was failed with a status code that is not in the 2xx range |
+| `success`       | request was successful with a status code 200-299 range |
+| `failed`        | request was failed with a status code that is not in the 300-599 range |
 | `finished`      | request is finished, regardless of its outcome |
 | `canceled`      | request is canceled by Restorm or the user |
 | `paginated`     | request is finished, pagination is ready |
 | `network-error` | request failed due to a network level error |
-| [StatusCodes]   | request is finished and the server responds with the corresponding status code. For example, if the server responds with a 404 status code, the `404` event is triggered. |
+| `[StatusCodes]` | request is finished and the server responds with the corresponding status code. For example, if the server responds with a 404 status code, the `404` event is triggered. |
 
 # Collections
 Restorm provides a structure for handling a set of model instances. We prefer to call it a collection. It extends native `Array` constructor. So we can say that collections a specialized type of array.
