@@ -117,6 +117,7 @@ export default class Model
 	 * ------------------------------------------------
 	 * 
 	 * @param {string|array|object} fieldNameOrWhereMap 
+	 * @param {string|value} operatorOrValue
 	 * @param {string|array} value 
 	 * @return {QueryBuilder}
 	 * @example
@@ -161,7 +162,7 @@ export default class Model
 	 * });
 	 * ```
 	 */
-	static where( fieldNameOrWhereMap, value )
+	static where( fieldNameOrWhereMap, operatorOrValue, value )
 	{
 		return this.createBuilder().where( ...arguments );
 	}

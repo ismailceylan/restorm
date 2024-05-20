@@ -1,6 +1,7 @@
 import { symOnce } from "./utils/symbols";
 import { flatObject, isPlainObject } from "./utils";
-import { Field, Value, Client, Collection, LengthAwarePaginator, Model } from ".";
+import { Field, Value, Client, Collection, LengthAwarePaginator, Model, Operator }
+	from ".";
 
 /**
  * @typedef {import('axios').AxiosResponse} AxiosResponse
@@ -227,13 +228,22 @@ export default class QueryBuilder
 	 *     },
 	 * });
 	 * ```
-	 * 
-	 * @param {string|array|object} fieldNameOrWhereMap field name or where map
-	 * @param {condition=} condition 
+	 * @typedef {string|string[]} WhereCondition
+	 * @typedef {"equal"|"notequal"|"less"|"greater"|"lesseq"|"greatereq"
+	 * |"between"|"notbetween"|"in"|"like"|"notlike"|"null"|"notnull"} WhereOperators
+	 * @param {string|string[]|{}} fieldNameOrWhereMap field name or where map
+	 * @param {WhereCondition & WhereOperators} operatorOrCondition filtering operator or conditions
+	 * @param {WhereCondition} condition conditions
 	 * @return {QueryBuilder}
 	 */
-	where( fieldNameOrWhereMap, condition )
+	where( fieldNameOrWhereMap, operatorOrCondition, condition )
 	{
+		if( arguments.length === 2 )
+		{
+			condition = operatorOrCondition;
+			operatorOrCondition = "=";
+		}
+
 		if( isPlainObject( fieldNameOrWhereMap ))
 		{
 			flatObject( fieldNameOrWhereMap ).forEach( item =>
@@ -249,7 +259,8 @@ export default class QueryBuilder
 			this.wheres.push(
 			[
 				new Field( fieldNameOrWhereMap ),
-				new Value( condition )
+				new Value( condition ),
+				new Operator( operatorOrCondition )
 			]);
 		}
 
@@ -914,7 +925,7 @@ export default class QueryBuilder
 	 * Builds given items stack with given name.
 	 * 
 	 * @param {string} name key name
-	 * @param {array} stack items to build
+	 * @param {array|array[]|Value} stack items to build
 	 * @return {object}
 	 */
 	#build( name, stack )
@@ -930,7 +941,14 @@ export default class QueryBuilder
 		{
 			if( item instanceof Array && item[ 0 ] instanceof Field )
 			{
-				map[ name + item[ 0 ]] = item[ 1 ].toString();
+				if( item[ 2 ] instanceof Operator )
+				{
+					map[ name + item[ 0 ]] = item[ 2 ] + ":" + item[ 1 ];
+				}
+				else
+				{
+					map[ name + item[ 0 ]] = item[ 1 ].toString();
+				}
 			}
 			else
 			{
