@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/ismailceylan/restorm/compare/v1.5.0...v1.6.0) (2024-05-20)
+
+
+### Features
+
+* add post method to send post requests ([f8a16ee](https://github.com/ismailceylan/restorm/commit/f8a16ee9353a1094602df0501d13b13ac7e3f5e5))
+* **query-builder:** support for other known comp. operators other than equality ([71c851c](https://github.com/ismailceylan/restorm/commit/71c851c7e19218c16056462991517f8d54cb6a78))
+
+
+### Bug Fixes
+
+* **model:** eliminate runtime error in case of `model instanceof undefined` ([862a92c](https://github.com/ismailceylan/restorm/commit/862a92c342a18051d9cd232ab83abd4f8e6e2052))
+
 ## [1.5.0](https://github.com/ismailceylan/restorm/compare/v1.4.0...v1.5.0) (2024-05-14)
 
 
