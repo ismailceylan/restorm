@@ -116,7 +116,7 @@ export default class Model
 	 * 
 	 * ------------------------------------------------
 	 * 
-	 * @param {string|array|object} fieldNameOrWhereMap 
+	 * @param {string|string[]|object} fieldNameOrWhereMap 
 	 * @param {string|value} operatorOrValue
 	 * @param {string|array} value 
 	 * @return {QueryBuilder}
@@ -165,6 +165,18 @@ export default class Model
 	static where( fieldNameOrWhereMap, operatorOrValue, value )
 	{
 		return this.createBuilder().where( ...arguments );
+	}
+
+	/**
+	 * Creates a QueryBuilder instance, adds a where clause to check
+	 * if a field is null, and returns the QueryBuilder.
+	 *
+	 * @param {string|object|string[]} fieldNameOrWhereMap name of the field to check for null
+	 * @return {QueryBuilder}
+	 */
+	static whereNull( fieldNameOrWhereMap )
+	{
+		return this.createBuilder().whereNull( fieldNameOrWhereMap );
 	}
 
 	/**
