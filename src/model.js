@@ -206,6 +206,20 @@ export default class Model
 	}
 
 	/**
+	 * Creates a QueryBuilder instance, adds a where clause to check
+	 * if a field is not between two values, and returns the QueryBuilder.
+	 *
+	 * @param {string|string[]|object} fieldNameOrWhereMap name of field to
+	 * check for not between values
+	 * @param {number[]} range minimum and maximum value
+	 * @return {QueryBuilder}
+	 */
+	static whereNotBetween( fieldNameOrWhereMap, range )
+	{
+		return this.createBuilder().whereNotBetween( fieldNameOrWhereMap, range );
+	}
+
+	/**
 	 * Creates a QueryBuilder instance, adds sorting
 	 * instructions in it and returns the QueryBuilder.
 	 * 

@@ -321,6 +321,18 @@ export default class QueryBuilder
 	}
 
 	/**
+	 * Adds a rule to exclude resources that fall within a specified range.
+	 *
+	 * @param {WhereTarget} fieldNameOrWhereMap name of the field to check
+	 * @param {number[]} range minimum and maximum value
+	 * @return {QueryBuilder}
+	 */
+	whereNotBetween( fieldNameOrWhereMap, range )
+	{
+		return this.whereBetween( fieldNameOrWhereMap, range, true );
+	}
+
+	/**
 	 * Adds rules to be used to sort resources.
 	 * 
 	 * ### Sorting Resource
