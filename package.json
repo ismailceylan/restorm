@@ -1,6 +1,6 @@
 {
   "name": "@iceylan/restorm",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Provides a robust interface for managing access to RESTful resources in JavaScript.",
   "main": "index.js",
   "scripts": {

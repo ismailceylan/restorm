@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.0](https://github.com/ismailceylan/restorm/compare/v1.6.0...v1.7.0) (2024-05-21)
+
+
+### Features
+
+* add whereBetween method ([b57610f](https://github.com/ismailceylan/restorm/commit/b57610fbbdf58407cc064800e3269d504dcf1858))
+* add whereIn method ([be5c4bc](https://github.com/ismailceylan/restorm/commit/be5c4bc6e5ff848981f72b5fa7d63541c835f8e9))
+* add whereNotBetween method ([2ee229a](https://github.com/ismailceylan/restorm/commit/2ee229a0447df3a27b2211d35d468f6b2427a4a4))
+* add whereNotIn method ([98f9845](https://github.com/ismailceylan/restorm/commit/98f9845aa7b7e8df9bc46da39dd5236cc397fca2))
+* add whereNotNull method ([becfcc3](https://github.com/ismailceylan/restorm/commit/becfcc31f349b22a79965981b29c49f1badda09a))
+* add whereNull method ([b181293](https://github.com/ismailceylan/restorm/commit/b18129388cfbe2a92d133a474e6a08ac86aae96d))
+* **operator:** add "notin" support ([104fbcf](https://github.com/ismailceylan/restorm/commit/104fbcfc799e5a30728e70d4cc169b0daaeb3112))
+
 ## [1.6.0](https://github.com/ismailceylan/restorm/compare/v1.5.0...v1.6.0) (2024-05-20)
 
 
