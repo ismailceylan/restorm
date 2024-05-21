@@ -35,6 +35,10 @@ export default
 
 	"...": "in",
 	"in": "in",
+	
+	"!..": "nin",
+	"notin": "nin",
+	
 	// like
 	"~": "lk",
 	"like": "lk",
