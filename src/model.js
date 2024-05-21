@@ -220,6 +220,20 @@ export default class Model
 	}
 
 	/**
+	 * Creates a QueryBuilder instance, adds a where clause to check if a
+	 * field is in a list of values, and returns the QueryBuilder.
+	 *
+	 * @param {string|string[]|object} fieldNameOrWhereMap name of field to
+	 * check for values in the list
+	 * @param {Array} values list of values to check against
+	 * @return {QueryBuilder}
+	 */
+	static whereIn( fieldNameOrWhereMap, values )
+	{
+		return this.createBuilder().whereIn( fieldNameOrWhereMap, values );
+	}
+
+	/**
 	 * Creates a QueryBuilder instance, adds sorting
 	 * instructions in it and returns the QueryBuilder.
 	 * 
