@@ -244,7 +244,9 @@ export default class QueryBuilder
 		if( arguments.length === 2 )
 		{
 			value = operatorOrValue;
-			operatorOrValue = "=";
+			operatorOrValue = Array.isArray( value )
+				? "in"
+				: "equal";
 		}
 		
 		if( isPlainObject( fieldNameOrWhereMap ))
