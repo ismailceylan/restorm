@@ -1,3 +1,5 @@
+import { operatorMap } from "./utils";
+
 /**
  * Represents any operator.
  */
@@ -9,66 +11,6 @@ export default class Operator
 	 * @type {string}
 	 */
 	operator = null;
-
-	/**
-	 * The operator map.
-	 * 
-	 * @type {object}
-	 */
-	operatorMap =
-	{
-		// equal
-		"=": "eq",
-		"equal": "eq",
-
-		// not equal
-		"!=": "ne",
-		"<>": "ne",
-		"notequal": "ne",
-		
-		// less than
-		"<": "lt",
-		"less": "lt",
-		
-		// greater than
-		">": "gt",
-		"greater": "gt",
-		
-		// less or equal
-		"<=": "lte",
-		"lesseq": "lte",
-		
-		// equal or greater
-		">=": "gte",
-		"greatereq": "gte",
-		
-		// between
-		"><": "bw",
-		"between": "bw",
-		
-		// not between
-		"!><": "nbw",
-		"notbetween": "nbw",
-
-		"...": "in",
-		"in": "in",
-		
-		// like
-		"~": "lk",
-		"like": "lk",
-		
-		// not like
-		"!~": "nlk",
-		"notlike": "nlk",
-		
-		// null
-		"=n": "nl",
-		"null": "nl",
-		
-		// not null
-		"!n": "nn",
-		"notnull": "nn",
-	}
 
 	/**
 	 * Creates a new operator.
@@ -87,6 +29,6 @@ export default class Operator
 	 */
 	toString()
 	{
-		return this.operatorMap[ this.operator ] || this.operator;
+		return operatorMap[ this.operator ] || this.operator;
 	}
 }
