@@ -179,9 +179,30 @@ export default class Model
 		return this.createBuilder().whereNull( fieldNameOrWhereMap );
 	}
 
+	/**
+	 * Creates a QueryBuilder instance, adds a where clause to check
+	 * if a field is not null, and returns the QueryBuilder.
+	 *
+	 * @param {string|object|string[]} fieldNameOrWhereMap name of the field to check for not null
+	 * @return {QueryBuilder}
+	 */
 	static whereNotNull( fieldNameOrWhereMap )
 	{
 		return this.createBuilder().whereNotNull( fieldNameOrWhereMap );
+	}
+
+	/**
+	 * Creates a QueryBuilder instance, adds a where clause to check
+	 * if a field is between two values, and returns the QueryBuilder.
+	 *
+	 * @param {string|string[]|object} fieldNameOrWhereMap name of field to check for between values
+	 * @param {number[]} range minimum and maximum value
+	 * @param {boolean} [not=false] whether to negate the condition
+	 * @return {QueryBuilder}
+	 */
+	static whereBetween( fieldNameOrWhereMap, range = null, not = false )
+	{
+		return this.createBuilder().whereBetween( fieldNameOrWhereMap, range, not );
 	}
 
 	/**

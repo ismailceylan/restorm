@@ -303,6 +303,24 @@ export default class QueryBuilder
 	}
 
 	/**
+	 * Adds a where clause to the query builder that checks if a
+	 * field is between two values.
+	 *
+	 * @param {WhereTarget} fieldNameOrWhereMap name of field to check
+	 * @param {number[]} range minimum and maximum value
+	 * @param {boolean} [not=false] whether to negate the condition
+	 * @return {QueryBuilder}
+	 */
+	whereBetween( fieldNameOrWhereMap, range = null, not = false )
+	{
+		return this.where(
+			fieldNameOrWhereMap ,
+			not? "notbetween" : "between",
+			range?.slice( 0, 2 )
+		);
+	}
+
+	/**
 	 * Adds rules to be used to sort resources.
 	 * 
 	 * ### Sorting Resource
