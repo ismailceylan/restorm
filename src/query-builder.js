@@ -198,6 +198,12 @@ export default class QueryBuilder
 	}
 
 	/**
+	 * @typedef {string|string[]} WhereCondition
+	 * @typedef {string|string[]|{}} WhereTarget
+	 * @typedef {"equal"|"notequal"|"less"|"greater"|"lesseq"|"greatereq"|"between"|"notbetween"|"in"|"notin"|"like"|"notlike"|"null"|"notnull"} WhereOperators
+	 */
+
+	/**
 	 * Adds constraints to be used to filter resources.
 	 * 
 	 * ### Filtering Resource
@@ -228,29 +234,26 @@ export default class QueryBuilder
 	 *     },
 	 * });
 	 * ```
-	 * @typedef {string|string[]} WhereCondition
-	 * @typedef {"equal"|"notequal"|"less"|"greater"|"lesseq"|"greatereq"
-	 * |"between"|"notbetween"|"in"|"like"|"notlike"|"null"|"notnull"} WhereOperators
-	 * @param {string|string[]|{}} fieldNameOrWhereMap field name or where map
-	 * @param {WhereCondition & WhereOperators} operatorOrCondition filtering operator or conditions
+	 * @param {WhereTarget} fieldNameOrWhereMap field name or where map
+	 * @param {WhereCondition & WhereOperators} operatorOrValue filtering operator or conditions
 	 * @param {WhereCondition} condition conditions
 	 * @return {QueryBuilder}
 	 */
-	where( fieldNameOrWhereMap, operatorOrCondition, condition )
+	where( fieldNameOrWhereMap, operatorOrValue, value )
 	{
 		if( arguments.length === 2 )
 		{
-			condition = operatorOrCondition;
-			operatorOrCondition = "=";
+			value = operatorOrValue;
+			operatorOrValue = "=";
 		}
-
+		
 		if( isPlainObject( fieldNameOrWhereMap ))
 		{
 			flatObject( fieldNameOrWhereMap ).forEach( item =>
 				this.where(
 					item.key,
-					item.value,
-					operatorOrCondition
+					operatorOrValue,
+					item.value
 				)
 			);
 		}
@@ -259,8 +262,8 @@ export default class QueryBuilder
 			this.wheres.push(
 			[
 				new Field( fieldNameOrWhereMap ),
-				new Value( condition ),
-				new Operator( operatorOrCondition )
+				new Value( value ),
+				new Operator( operatorOrValue )
 			]);
 		}
 
