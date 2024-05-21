@@ -179,6 +179,11 @@ export default class Model
 		return this.createBuilder().whereNull( fieldNameOrWhereMap );
 	}
 
+	static whereNotNull( fieldNameOrWhereMap )
+	{
+		return this.createBuilder().whereNotNull( fieldNameOrWhereMap );
+	}
+
 	/**
 	 * Creates a QueryBuilder instance, adds sorting
 	 * instructions in it and returns the QueryBuilder.

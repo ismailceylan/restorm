@@ -287,6 +287,22 @@ export default class QueryBuilder
 	}
 
 	/**
+	 * Adds a where clause to the query builder that checks if a
+	 * field is not null.
+	 *
+	 * @param {WhereTarget} fieldNameOrWhereMap the name of the field to check for not null
+	 * @return {QueryBuilder}
+	 */
+	whereNotNull( fieldNameOrWhereMap )
+	{
+		return this.where(
+			fieldNameOrWhereMap,
+			"notnull",
+			null
+		);
+	}
+
+	/**
 	 * Adds rules to be used to sort resources.
 	 * 
 	 * ### Sorting Resource
