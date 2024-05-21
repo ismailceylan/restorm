@@ -202,10 +202,10 @@ const articles = await Post.where( "type", "article" ).all();
 ```
 
 ```
-GET /api/v1.0/posts?filter[type]=article
+GET /api/v1.0/posts?filter[type]=eq:article
 ```
 
-If no comparison operator is specified, `=` or `equal` operator will be used by default.
+If no operator is specified, the given value type will be checked. If the given value is an array, the operator will be assumed as `in` and the filter will be transformed into a `whereIn`. If the given value is not an array, the operator will be assumed as `equal` and items that match exactly the given value will be filtered out.
 
 This code is equivalent to the above:
 
@@ -213,6 +213,16 @@ This code is equivalent to the above:
 Post.where( "type", "=", "article" );
 // or
 Post.where( "type", "equal", "article" );
+```
+
+This filters are also equal to each other:
+
+```js
+Post.where( "id", [ 10, 20, 30 ]);
+// or more explicitly
+Post.where( "id", "in" [ 10, 20, 30 ]);
+// or dedicated method
+Post.whereIn( "id", [ 10, 20, 30 ]);
 ```
 
 ### Supported Comparison Operators
@@ -249,8 +259,22 @@ const articles = await Post
 ```
 
 ```
-GET /api/v1.0/posts?with=comments&filter[type]=article&filter[comments.state]=approved
+GET /api/v1.0/posts?with=comments&filter[type]=eq:article&filter[comments.state]=eq:approved
 ```
+
+We could also use operators with them.
+
+```js
+Post.where( "comments.state", "notin", [ "owner-removed", "banned" ]);
+// or with dedicated method
+Post.whereNotIn( "comments.state", [ "owner-removed", "banned" ]);
+```
+
+```
+GET /api/v1.0/posts?filter[comments.state]=nin:owner-removed,banned
+```
+
+With that filter, we could get all the comments that if their state not `owner-removed` and not `banned`.
 
 ### Object Syntax
 We can perform these operations in a more organized and concise manner through object syntax, providing a cleaner and more streamlined usage. For example, if we are using something like vue.js or react.js, we can manage operations on reactive objects and directly pass this object to the `where` method.
@@ -273,7 +297,7 @@ const articles = await Post.with( "comments" ).where( conditions ).all();
 ```
 
 ```
-GET /api/v1.0/posts?with=comments&filter[type]=article&filter[comments.state]=approved
+GET /api/v1.0/posts?with=comments&filter[type]=eq:article&filter[comments.state]=eq:approved
 ```
 
 ### Multiple Values
@@ -286,7 +310,7 @@ const posts = await Post.where( "type", [ "article", "news" ]).get();
 This request will get all the posts of the `article` and `news` types.
 
 ```
-GET /api/v1.0/posts?filter[type]=article,news
+GET /api/v1.0/posts?filter[type]=in:article,news
 ```
 
 ## Sorting Resources
