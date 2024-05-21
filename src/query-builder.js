@@ -350,6 +350,23 @@ export default class QueryBuilder
 	}
 
 	/**
+	 * Adds a where clause to the query builder that checks if a field is
+	 * not in a list of values.
+	 *
+	 * @param {WhereTarget} fieldNameOrWhereMap name of the field to check
+	 * @param {Array} values list of values to check against
+	 * @return {QueryBuilder}
+	 */
+	whereNotIn( fieldNameOrWhereMap, values )
+	{
+		return this.where(
+			fieldNameOrWhereMap,
+			"notin",
+			values
+		);
+	}
+
+	/**
 	 * Adds rules to be used to sort resources.
 	 * 
 	 * ### Sorting Resource
