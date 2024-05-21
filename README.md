@@ -1,3 +1,4 @@
+
 # Introduction
 Restorm is a lightweight JavaScript library designed to streamline the process of handling RESTful services within client-side applications. With Restorm, we can easily model data on the client side and interact with RESTful APIs by adhering to predefined rules and conventions.
 
@@ -190,7 +191,9 @@ The API endpoint should return the following response:
 ```
 
 ## Filtering Resources
-To list specific resources, we add filters with `where` method to accomplish this.
+To list specific resources, we add filters with `where` and various methods like `whereNull`, `whereNotNull`, `whereBetween`, `whereNotBetween`, `whereIn`, `whereNotIn` to accomplish this.
+
+All the alternative methods listed above are implemented by `where` method under the hood.
 
 We can directly filter represented resources by models:
 
@@ -201,6 +204,36 @@ const articles = await Post.where( "type", "article" ).all();
 ```
 GET /api/v1.0/posts?filter[type]=article
 ```
+
+If no comparison operator is specified, `=` or `equal` operator will be used by default.
+
+This code is equivalent to the above:
+
+```js
+Post.where( "type", "=", "article" );
+// or
+Post.where( "type", "equal", "article" );
+```
+
+### Supported Comparison Operators
+Restorm supports the following comparison operators in the `where` method:
+
+| Operator | Alternative  | Alternative | Description      |
+| -------- | ------------ | ----------- | ---------------- |
+| `=`      | `equal`      |             | filters exactly matching items |
+| `!=`     | `notequal`   | `<>`        | filters items that do not match the given value |
+| `<`      | `less`       |             | filters items that smaller than the given value |
+| `>`      | `great`      |             | filters items that greater than the given value |
+| `<=`     | `lesseq`     |             | filters items that equal or smaller than the given value |
+| `>=`     | `greateq`    |             | filters items that equal or greater than the given value |
+| `><`     | `between`    |             | filters items that fall between two given values |
+| `!><`    | `notbetween` |             | filters items that do not fall between two given values |
+| `...`    | `in`         |             | filters items that match exactly with given multiple values |
+| `!..`    | `notin`      |             | filters items that do not match with given multiple values |
+| `~`      | `like`       |             | filters items containing the given value |
+| `!~`     | `notlike`    |             | filters items that do not contain the given value |
+| `=n`     | `null`       |             | filters items that do not hold any value |
+| `!n`     | `notnull`    |             | filters items that hold any value |
 
 ### Filtering Related Resource
 If the related resource that we included in by `with` method is kind of multiple (i.e., one-to-many), for example comments of a post, we can also indirectly add filters to these sub-resources (comments) to reduce the returned results.
@@ -254,16 +287,6 @@ This request will get all the posts of the `article` and `news` types.
 
 ```
 GET /api/v1.0/posts?filter[type]=article,news
-```
-
-We didn't add a separate `whereIn` method because the `where` method is flexible enough to handle it on its own.
-
-```js
-const posts = await Post.where( "id", [ 4, 8, 15 ]).get();
-```
-    
-```
-GET /api/v1.0/posts?filter[id]=4,8,15
 ```
 
 ## Sorting Resources
