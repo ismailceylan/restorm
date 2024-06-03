@@ -61,6 +61,12 @@ const posts = await Post.all();
 GET /api/v1.0/posts
 ```
 
+We can safely use `Collection` and `Array` specific methods on the result.
+
+```js
+const latestPostTitle = posts.map( post => post.title ).last();
+```
+
 ### Using get Method
 If we are sure that the endpoint is kind of a multiple resource returner or we are aware that we should have to deal with the results either as a collection or a single model then we can use `get` method.
 
@@ -81,6 +87,19 @@ if( result instanceof Collection )
 
 ```
 GET /api/v1.0/posts
+```
+
+The `Collection` extends native Array. So we can say that collections a specialized type of array. We will learn more about it in the next sections.
+
+We could easily use Array approach as well to accomplish the same result.
+
+```js
+if( Array.isArray( result ))
+{
+	result.forEach( post =>
+		console.log( post.id )
+	);
+}
 ```
 
 ## Retrieving a Single Resource
@@ -228,22 +247,22 @@ Post.whereIn( "id", [ 10, 20, 30 ]);
 ### Supported Comparison Operators
 Restorm supports the following comparison operators in the `where` method:
 
-| Operator | Alternative  | Alternative | Description      |
-| -------- | ------------ | ----------- | ---------------- |
-| `=`      | `equal`      |             | filters exactly matching items |
-| `!=`     | `notequal`   | `<>`        | filters items that do not match the given value |
-| `<`      | `less`       |             | filters items that smaller than the given value |
-| `>`      | `great`      |             | filters items that greater than the given value |
-| `<=`     | `lesseq`     |             | filters items that equal or smaller than the given value |
-| `>=`     | `greateq`    |             | filters items that equal or greater than the given value |
-| `><`     | `between`    |             | filters items that fall between two given values |
-| `!><`    | `notbetween` |             | filters items that do not fall between two given values |
-| `...`    | `in`         |             | filters items that match exactly with given multiple values |
-| `!..`    | `notin`      |             | filters items that do not match with given multiple values |
-| `~`      | `like`       |             | filters items containing the given value |
-| `!~`     | `notlike`    |             | filters items that do not contain the given value |
-| `=n`     | `null`       |             | filters items that do not hold any value |
-| `!n`     | `notnull`    |             | filters items that hold any value |
+| Operator     | Alternative | Encapsulating Method | Description |
+| ------------ | ----------- | -------------------- | ----------- |
+| `equal`      | `=`         | `where` | match exactly |
+| `notequal`   | `!=` `<>`   | `where` | don't match the given value |
+| `less`       | `<`         | `where` | smaller than the given value |
+| `great`      | `>`         | `where` | greater than the given value |
+| `lesseq`     | `<=`        | `where` | equal or smaller than the given value |
+| `greateq`    | `>=`        | `where` | equal or greater than the given value |
+| `between`    | `><`        | `where` `whereBetween` | fall between two given values |
+| `notbetween` | `!><`       | `where` `whereNotBetween` | don't fall between two given values |
+| `in`         | `...`       | `where` `whereIn` | match exactly with the given multiple values |
+| `notin`      | `!..`       | `where` `whereNotIn` | don't match with the given multiple values |
+| `like`       | `~`         | `where` | match if the given value containing |
+| `notlike`    | `!~`        | `where` | don't contain the given value |
+| `null`       | `=n`        | `where` `whereNull` | match if it's empty |
+| `notnull`    | `!n`        | `where` `whereNotNull` | don't match if it's not empty |
 
 ### Filtering Related Resource
 If the related resource that we included in by `with` method is kind of multiple (i.e., one-to-many), for example comments of a post, we can also indirectly add filters to these sub-resources (comments) to reduce the returned results.
@@ -987,9 +1006,9 @@ Restorm currently doesn't support a way to explicitly removing event listeners t
 | :-------------- | :--- |
 | `waiting`       | request is initiated and waiting for the response |
 | `success`       | request was successful with a status code 200-299 range |
-| `failed`        | request was failed with a status code that is not in the 300-599 range |
+| `failed`        | request was failed with a status code that is in the 400-599 range |
 | `finished`      | request is finished, regardless of its outcome |
-| `canceled`      | request is canceled by Restorm or the user |
+| `canceled`      | request is canceled by Restorm or the user before it finished |
 | `paginated`     | request is finished, pagination is ready |
 | `network-error` | request failed due to a network level error |
 | `[StatusCodes]` | request is finished and the server responds with the corresponding status code. For example, if the server responds with a 404 status code, the `404` event is triggered. |
