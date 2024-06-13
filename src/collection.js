@@ -63,25 +63,42 @@ export default class Collection extends Array
 	 */
 	contains( modelOrPrimaryKey )
 	{
-		let primary;
-
-		if( modelOrPrimaryKey instanceof Model )
-		{
-			primary = modelOrPrimaryKey.primary;
-		}
+		const isTargetModel = modelOrPrimaryKey instanceof Model;
 
 		const index = this.findIndex( item =>
 		{
+			// item is a model
 			if( item instanceof Model )
 			{
-				if( item.primary === primary )
+				// target is a model
+				if( isTargetModel )
+				{
+					// both are same model
+					if( item.constructor === modelOrPrimaryKey.constructor )
+					{
+						// both are share same primary
+						return item.primary === modelOrPrimaryKey.primary;
+					}
+				}
+				// target is not a model
+				else
+				{
+					return item.primary === modelOrPrimaryKey;
+				}
+			}
+			// item is not a model
+			else
+			{
+				// target is a model
+				if( isTargetModel )
+				{
+					return item === modelOrPrimaryKey.primary;
+				}
+				// target and item both are not model
+				else if( item === modelOrPrimaryKey )
 				{
 					return true;
 				}
-			}
-			else if( item === primary )
-			{
-				return true;
 			}
 		});
 
