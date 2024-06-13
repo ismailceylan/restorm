@@ -112,7 +112,7 @@ There are three methods that enable us to obtain a single resource.
 ### Getting the First Resource
 The `first` method creates a request to the root directory of resources with filtering criteria, and it requests the first item of the results found.
 
-The returned promise is fulfilled with an instance created from the Post model.
+The returned promise will be fulfilled with an instance created from the Post model.
 
 ```js
 const post = await Post.first();
@@ -122,7 +122,7 @@ const post = await Post.first();
 GET /api/v1.0/posts?limit=1
 ```
 
-### Finding a Specific Resource
+### Finding an Exact Resource By Primary Key
 The `find` method creates a request to access a resource under the root directory of resources using a primary key.
 
 ```js
@@ -154,7 +154,7 @@ GET /api/v1.0/posts
 ## Including Relationships
 The `with` method is used to include related resource to a model. This process is known as eager loading. We can provide as many relationship names as arguments to the method or as an array.
 
-We can directly include a related resource by its model:
+We can directly include a related resource by its name to the model:
 
 ```js
 const posts = await Post
@@ -214,6 +214,8 @@ To list specific resources, we add filters with `where` and various methods like
 
 All the alternative methods listed above are implemented by `where` method under the hood.
 
+`where` method has 3 arguments. `target`, `operator` and `filter`. The first one is the name of the field, the second one is the operator and the third one is the filtering criteria. The operator is an optional one.
+
 We can directly filter represented resources by models:
 
 ```js
@@ -224,28 +226,28 @@ const articles = await Post.where( "type", "article" ).all();
 GET /api/v1.0/posts?filter[type]=eq:article
 ```
 
-If no operator is specified, the given value type will be checked. If the given value is an array, the operator will be assumed as `in` and the filter will be transformed into a `whereIn`. If the given value is not an array, the operator will be assumed as `equal` and items that match exactly the given value will be filtered out.
+If no operator is specified, the given criteria value type will be checked. If the given value is an array, the operator will be assumed as `in` and the filtering attempt will be transformed into a `whereIn`. If the given value is not an array, the operator will be assumed as `equal` and items that match exactly the given value will be filtered out.
 
-This code is equivalent to the above:
+These three filters are equal to each other:
 
 ```js
+Post.where( "type", "article" );
 Post.where( "type", "=", "article" );
-// or
 Post.where( "type", "equal", "article" );
 ```
 
-This filters are also equal to each other:
+These are also equal to each other:
 
 ```js
 Post.where( "id", [ 10, 20, 30 ]);
 // or more explicitly
 Post.where( "id", "in" [ 10, 20, 30 ]);
-// or dedicated method
+// or with the dedicated method
 Post.whereIn( "id", [ 10, 20, 30 ]);
 ```
 
 ### Supported Comparison Operators
-Restorm supports the following comparison operators in the `where` method:
+Restorm supports the following comparison operators in the `where` methods:
 
 | Operator     | Alternative | Encapsulating Method | Description |
 | ------------ | ----------- | -------------------- | ----------- |
@@ -256,9 +258,9 @@ Restorm supports the following comparison operators in the `where` method:
 | `lesseq`     | `<=`        | `where` | equal or smaller than the given value |
 | `greateq`    | `>=`        | `where` | equal or greater than the given value |
 | `between`    | `><`        | `where` `whereBetween` | fall between two given values |
-| `notbetween` | `!><`       | `where` `whereNotBetween` | don't fall between two given values |
+| `notbetween` | `>!<`       | `where` `whereNotBetween` | don't fall between two given values |
 | `in`         | `...`       | `where` `whereIn` | match exactly with the given multiple values |
-| `notin`      | `!..`       | `where` `whereNotIn` | don't match with the given multiple values |
+| `notin`      | `.!.`       | `where` `whereNotIn` | don't match with the given multiple values |
 | `like`       | `~`         | `where` | match if the given value containing |
 | `notlike`    | `!~`        | `where` | don't contain the given value |
 | `null`       | `=n`        | `where` `whereNull` | match if it's empty |
@@ -318,6 +320,8 @@ const articles = await Post.with( "comments" ).where( conditions ).all();
 ```
 GET /api/v1.0/posts?with=comments&filter[type]=eq:article&filter[comments.state]=eq:approved
 ```
+
+As you noticed, we doesn't have a way to apply operators on object syntax currently. The operator is defaultly assumed to be `equal` for the object syntax. Maybe we can improve it in the future.
 
 ### Multiple Values
 We can also add multiple values for a filter.
@@ -513,9 +517,16 @@ const [ firstPage, secondPage ] = await Promise.all(
 ]);
 ```
 
+```
+GET /api/v1.0/posts?limit=10&page=1
+GET /api/v1.0/posts?limit=10&page=2
+```
+
 We requested the first and second page and got the first and second 10 posts simultaneously.
 
-### Advanced Pagination
+As you realized, we paginated resources without knowing the total number of items and pages. It's kind of a blind process but more performant than if we knew them upfront.
+
+### Length-Aware Pagination
 The `paginate` method can handle the pagination process that we have been doing manually and adds some extra features to it.
 
 This method returns a `LengthAwarePaginator` instance which it extends our `Collection` class. We will see soon what collections can do but for now, that makes it an advanced collection that can be used to get the total number of items, current page, items per page, total number of pages, request the next page with ease and of course get the items.
@@ -583,7 +594,7 @@ const { end } = paginator.page;
 ```
 
 #### Normalizing Pagination Metadata
-Restful APIs can provide various types of pagination metadata depending on the frameworks, libraries and developers. The `Page` class normalizes this metadata into a consistent format, but we need to specify which information corresponds to which attribute and distribute them properly.
+Nowadays, RESTful APIs can provide various types of pagination metadata depending on the frameworks, libraries, and who created the API. The `Page` class normalizes this metadatas into a consistent format. But we need to specify which information corresponds to which attribute and distribute them properly.
 
 We achieve this by defining a static method called `$pluckPaginations` on our models. Restorm invokes this method by passing the body of the response sent by the Restful API and the `Page` instance through the argument tunnel. We should then use these objects to ensure the necessary distribution.
 
@@ -711,6 +722,8 @@ const reactions = await Reaction.from( post, comment, "reactions" ).all();
 GET /api/v1.0/posts/48/comments/4815/reactions
 ```
 
+In real world, reactions would belong to posts, comments, and even personal messages. Defining a static resource name in the model wouldn't work in this case. This is where the `from` method shines.
+
 # CRUD Operations
 Restorm provides a set of methods that allow us to perform CRUD operations on RESTful resources, and we have seen above how to handle the `(R)ead` side by `get`, `all`, `find`, `first` methods.
 
@@ -719,7 +732,9 @@ So let's see how to perform `(C)reate`, `(U)pdate` and `(D)elete` operations.
 ## Create
 On HTTP protocol, a resource creation should be performed by sending a `POST` request to the RESTful api endpoints.
 
-We designed a few alternative ways to create resources. First, we can create resources as model instances and send them.
+We designed a few alternative ways to create resources.
+
+First, we can create resources as model instances and send them.
 
 ```js
 const title = "Elon Musk went to the Moon instead of Mars";
@@ -734,19 +749,19 @@ const article = await draft.post();
 // or
 const article = await draft.save();
 
-if( article instanceof AxiosError )
+if( article instanceof Error )
 {
 	console.log( "network or server errors", article );
 }
 ```
 
-The `post` method returns a promise that will be fulfilled with an instance of `Article` model or an `Error` if there is an issue. Errors won't be thrown and you can't catch them with `async-await & try-catch` or `then-catch` mechanism. Restorm will supress throwing all the HTTP errors with 400 and 500 status codes and network errors as well.
+The `post` method returns a promise that will be fulfilled with an instance of `Article` model or an `Error` if there is an issue about the network or server side. The Restorm won't throw any network or server errors. That means you can't catch them with `async-await & try-catch` or `then-catch` mechanism. Restorm will supress throwing all the HTTP errors with 400 and 500 status codes and network errors as well.
 
-If you want to handle errors then you can add event listeners to your queries or models, or you can handle it manually when they're returned by `post` method.
+If you want to handle these kinds of errors, you can add event listeners to your queries or models, or you can handle them manually at that very moment when they are returned by the `post` method.
 
-If Restorm detects issues with the usage of its methods, it will throws an error and stops your application. You shouldn't catch and handle that kind of errors manually and suppress them, just have to solve and disappear them.
+If Restorm detects issues with the usage of its methods, it will throw an error and stop your application. You shouldn't catch and handle these kind of errors manually or suppress them; you need to resolve and eliminate them.
 
-We can also statically use the `post` method.
+Let's go back the examples. We could also statically use the `post` method.
 
 ```js
 const newArticle = await Article.post(
@@ -810,7 +825,7 @@ And the resource will be like:
 }
 ```
 
-The `save` method always sends a `PATCH` request if the case is about updating an existing resource. However, sometimes we really want to send a `PUT` request. We can do that by using the `put` method of Restorm.
+The `save` method will send a `PATCH` request if the case is about updating an existing resource. However, sometimes we really want to send a `PUT` request. We can do that by using the `put` method of Restorm.
 
 ```js
 const state =
@@ -818,7 +833,7 @@ const state =
 	title: "Jeff Bezos went to the Moon instead of Mars"
 }
 
-// we can get the resource as a model from the endpoint
+// we can request the resource as a model from the endpoint
 const article = await Article.find( 1 );
 
 // or we can bake the model manually without `GET` request
