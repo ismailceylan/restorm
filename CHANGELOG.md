@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.8.0](https://github.com/ismailceylan/restorm/compare/v1.7.0...v1.8.0) (2024-06-13)
+
+
+### Features
+
+* **collection:** add contains method ([e5f69da](https://github.com/ismailceylan/restorm/commit/e5f69dab34788ebd9aea95f270ae9ef43126d508))
+* **collection:** proxify array returner methods to return collection ([fe035df](https://github.com/ismailceylan/restorm/commit/fe035dfe949be28a23739006e3e80632b886ce12))
+
 ## [1.7.0](https://github.com/ismailceylan/restorm/compare/v1.6.0...v1.7.0) (2024-05-21)
 
 
