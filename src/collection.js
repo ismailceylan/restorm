@@ -106,6 +106,34 @@ export default class Collection extends Array
 	}
 
 	/**
+	 * Calculates the difference between the current collection and the
+	 * provided items.
+	 *
+	 * This method filters out the elements from the current collection that
+	 * are present in the provided items.
+	 *
+	 * @param {...Model|Collection<Model>|Model[]} items - The items to compare with
+	 * the current collection. Can be a spread of arguments or a single collection.
+	 * @return {Collection} A new collection with elements from the current
+	 * collection that are not present in the provided items.
+	 */
+	diff( ...items )
+	{
+		if( items.length === 1 && Array.isArray( items[ 0 ]))
+		{
+			items = new Collection( ...items[ 0 ]);
+		}
+		else if( items.length > 0 )
+		{
+			items = new Collection( ...items );
+		}
+
+		return this.filter( item =>
+			! items.contains( item )
+		);
+	}
+
+	/**
 	 * Concatenates the elements of the current collection with the elements of one
 	 * or more other collections or collection and returns a new collection.
 	 *

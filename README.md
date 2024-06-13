@@ -1031,6 +1031,8 @@ Restorm currently doesn't support a way to explicitly removing event listeners t
 # Collections
 Restorm provides a structure for handling a set of model instances. We prefer to call it a collection. It extends native `Array` constructor. So we can say that collections a specialized type of array.
 
+We can use all the methods that we use on arrays. But note that methods like `map` or `filter`, which return an array when used on arrays, will return a collection instead of an array since it's a collection anyway.
+
 ## Getting a Collection
 The `all` method returns a promise that will be fulfilled with a collection of model instances.
 
@@ -1066,6 +1068,32 @@ console.log( posts.contains( post ));
 console.log( posts.contains( 1 ));
 ```
 
+Of course there is no need to mention we can use native `filter` or `find` array method to do more complex analysis to check if the collection contains a specific model.
+
+## Diff
+Some case we might want to take a difference between two collections. We can use the `diff` method to get the difference between two collections.
+
+```js
+const items = new Collection( 1, 2, 3, 4 );
+const even = new Collection( 2, 4 );
+const odd = items.diff( even );
+
+console.log( odd );
+// 1, 3
+```
+
+Main advantage of the `diff` method is that it knows how to deal with models.
+
+```js
+const posts = await Post.all();
+const evenIDPosts = await Post.whereIn( "id", [ 2, 4, 6, 8 ]).all();
+
+console.log( posts.diff( evenIDPosts ));
+// [{ id: 1, ... }, { id: 3, ... }]
+```	
+
+Two collection might contains same resources with different model instances but it didn't matter because of the `diff` method compares the primary keys.
+
 ## Plucking
 Sometimes we need only a specific field from the models (or objects). We can use the `pluck` method to collect values of those field and get them as a brand new collection.
 
@@ -1083,3 +1111,19 @@ console.log( posts.toJson());
 // equivalent to
 console.log( JSON.stringify( posts ));
 ```
+
+## Array Methods
+We can easily use array methods on the collection.
+
+For example, let's say we want to get the first 5 models from the collection. We can use `slice` method to achieve that.
+
+```js
+console.log(
+	posts.slice( 0, 5 ).pluck( "id" )
+);
+// 1, 2, 3, 4, 5
+```
+
+As you see, slice method returns a collection.
+
+Also, there are other array methods like `sort`, `push`, `pop`, `shift`, and `unshift` that mutate the array. We didn't touch that convention here. They will mutate the collection.
