@@ -30,13 +30,13 @@ export default
 	"between": "bw",
 	
 	// not between
-	"!><": "nbw",
+	">!<": "nbw",
 	"notbetween": "nbw",
 
 	"...": "in",
 	"in": "in",
 	
-	"!..": "nin",
+	".!.": "nin",
 	"notin": "nin",
 	
 	// like
