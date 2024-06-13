@@ -63,22 +63,29 @@ export default class Collection extends Array
 	 */
 	contains( modelOrPrimaryKey )
 	{
-		for( let item of this )
+		let primary;
+
+		if( modelOrPrimaryKey instanceof Model )
+		{
+			primary = modelOrPrimaryKey.primary;
+		}
+
+		const index = this.findIndex( item =>
 		{
 			if( item instanceof Model )
 			{
-				if( item.primary === modelOrPrimaryKey )
+				if( item.primary === primary )
 				{
 					return true;
 				}
 			}
-			else if( item === modelOrPrimaryKey )
+			else if( item === primary )
 			{
 				return true;
 			}
-		}
+		});
 
-		return false;
+		return index > -1;
 	}
 
 	/**
