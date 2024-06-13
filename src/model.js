@@ -746,6 +746,12 @@ export default class Model
 		return this;
 	}
 
+	assimilateTo( model )
+	{
+		this.original = model.original;
+		return this;
+	}
+
 	/**
 	 * Sends the given payload or the represented model with `POST`
 	 * request to the represented model's resource endpoint.
