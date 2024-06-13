@@ -1057,6 +1057,15 @@ console.log( posts.last());
 
 With array syntax we could use `posts[ posts.length - 1 ]`.
 
+## Contains
+We can easily check if the collection contains a specific model by using the model or its primary key.
+
+```js
+console.log( posts.contains( post ));
+// or
+console.log( posts.contains( 1 ));
+```
+
 ## Plucking
 Sometimes we need only a specific field from the models (or objects). We can use the `pluck` method to collect values of those field and get them as a brand new collection.
 

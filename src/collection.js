@@ -56,6 +56,32 @@ export default class Collection extends Array
 	}
 
 	/**
+	 * Checks if the collection contains the given model or primary key.
+	 * 
+	 * @param {Model|number|string} modelOrPrimaryKey 
+	 * @return {boolean}
+	 */
+	contains( modelOrPrimaryKey )
+	{
+		for( let item of this )
+		{
+			if( item instanceof Model )
+			{
+				if( item.primary === modelOrPrimaryKey )
+				{
+					return true;
+				}
+			}
+			else if( item === modelOrPrimaryKey )
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Concatenates the elements of the current collection with the elements of one
 	 * or more other collections or collection and returns a new collection.
 	 *
