@@ -5,6 +5,7 @@ import { Field, Value, Client, Collection, LengthAwarePaginator, Model, Operator
 
 /**
  * @typedef {import('axios').AxiosResponse} AxiosResponse
+ * @typedef {import('axios').AxiosError} AxiosError
  */
 export default class QueryBuilder
 {
@@ -541,7 +542,7 @@ export default class QueryBuilder
 	 * When the response is received, it instantiates the results as a 
 	 * model or collection and fullfills the returned promise.
 	 * 
-	 * @return {Promise<Model>|Promise<Collection>}
+	 * @return {Promise<Model|Collection|AxiosError>}
 	 */
 	async get()
 	{
@@ -551,7 +552,9 @@ export default class QueryBuilder
 			hydrate: response => this.#hydrate( response )
 		});
 
-		return result.hydrated;
+		return result instanceof Error
+			? result
+			: result.hydrated;
 	}
 
 	/**
