@@ -691,6 +691,44 @@ export default class Model
 		this.init( properties, casts );
 
 		this.query = this.constructor.createBuilder( this );
+
+		return new Proxy( this, {
+			set( instance, key, val )
+			{
+				if( key === "original" )
+				{
+					instance.original = val;
+				}
+				// if the value is same as original then
+				// it doesn't need to be in the modified
+				else if( instance.original[ key ] === val )
+				{
+					// let's check if it exists in modified
+					if( key in instance.modified )
+					{
+						delete instance.modified[ key ];
+						instance.isDirty = Object.keys( instance.modified ).length > 0;
+					}
+				}
+				else
+				{
+					instance.modified[ key ] = val;
+					instance.isDirty = true;
+				}
+		
+				return true;
+			},
+
+			get( instance, key, o )
+			{
+				if( key === Symbol.toStringTag )
+				{
+					return "Model";
+				}
+
+				return instance.original[ key ] || instance[ key ];
+			}
+		});
 	}
 
 	/**
@@ -909,32 +947,3 @@ export default class Model
 		this.isDirty = false;
 	}
 }
-
-Object.setPrototypeOf( Model.prototype, new Proxy( Model.prototype,
-{
-	set( Model, key, val, instance )
-	{
-		if( instance.original[ key ] === val )
-		{
-			delete instance.modified[ key ];
-			instance.isDirty = Object.keys( instance.modified ).length > 0;
-		}
-		else
-		{
-			instance.modified[ key ] = val;
-			instance.isDirty = true;
-		}
-
-		return true;
-	},
-
-	get( Model, key, instance )
-	{
-		if( key === Symbol.toStringTag )
-		{
-			return "Model";
-		}
-
-		return instance.original[ key ];
-	}
-}));
