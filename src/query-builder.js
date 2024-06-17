@@ -842,11 +842,18 @@ export default class QueryBuilder
 	/**
 	 * Sets represented model's endpoint to a temporary value.
 	 * 
-	 * @param {...array} resources temporary resource
+	 * @param {function|(string|Model)[]} resources temporary resource
 	 * @return {QueryBuilder}
 	 */
 	from( ...resources )
 	{
+		// dynamic determination of resource by function
+		if( resources.length == 1 && resources[ 0 ] instanceof Function )
+		{
+			this.resource = resources[ 0 ]( this.getResource());
+			return this;
+		}
+
 		const endpoint = [];
 
 		for( const item of resources )

@@ -509,7 +509,7 @@ export default class Model
 	/**
 	 * Sets represented model's endpoint to a temporary value.
 	 * 
-	 * @param {[string|Model]} resources temporary resource
+	 * @param {function|(string|Model)[]} resources temporary resource
 	 * @return {QueryBuilder}
 	 */
 	static from( ...resources )
