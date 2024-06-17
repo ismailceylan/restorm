@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.9.0](https://github.com/ismailceylan/restorm/compare/v1.8.0...v1.9.0) (2024-06-17)
+
+
+### Features
+
+* **collection:** add diff method ([3e62950](https://github.com/ismailceylan/restorm/commit/3e6295064794ea6d15e919af0bb7f8b11cc98021))
+* **query-builder:** add callback support to the from method ([e6096c7](https://github.com/ismailceylan/restorm/commit/e6096c71ffd1fcf58479e472beababccd1fa96b4))
+
+
+### Bug Fixes
+
+* **collection:** compare problem ([8b3d646](https://github.com/ismailceylan/restorm/commit/8b3d646864d0d12ff164b4386b26582ec4de1861))
+* **collection:** fix contains bugs ([fbcbb65](https://github.com/ismailceylan/restorm/commit/fbcbb65dc40cba0cf2f3b7e5304a4e3aa09f7e67))
+
 ## [1.8.0](https://github.com/ismailceylan/restorm/compare/v1.7.0...v1.8.0) (2024-06-13)
 
 
