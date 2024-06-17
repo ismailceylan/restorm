@@ -665,7 +665,7 @@ function getUserId()
 ```
 
 ```
-GET /api/v1.0/posts?filter[author_id]=481516
+GET /api/v1.0/posts?filter[author_id]=eq:481516
 ```
 
 You have to be careful with falsy values. For example, if you pass `0` as an user ID, it will be considered as `false`, and the constraint block won't be executed, even though it should by your perspective.
@@ -707,6 +707,19 @@ GET /api/v1.0/timeline
 ```
 
 All the items in the returned collection will be instance of `Post` model.
+
+### Extending Current Resource
+Sometimes, we might want to extend the current resource some additions. To achieve this, we can use the `from` method with a callback function. Restorm will pass the current resource as the first argument to the callback function. We should return calculated resource back from the callback function.
+
+```js
+const posts = await Post
+	.from( resource => resource + "/most-popular-of-the-month" )
+	.all();
+```
+
+```
+GET /api/v1.0/posts/most-popular-of-the-month?limit=10
+```
 
 ### Model Aware Custom Resource
 Sometimes, we might want to build dynamic resource URIs depending on some model instances that we have already.
