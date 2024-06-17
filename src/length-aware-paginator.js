@@ -3,6 +3,10 @@ import { Page, Collection, QueryBuilder } from ".";
 /**
  * @typedef {import('axios').AxiosResponse} AxiosResponse
  */
+/**
+ * Length aware paginator class. It extends collection class
+ * which is extends array.
+ */
 export default class LengthAwarePaginator extends Collection
 {
 	/**
