@@ -539,6 +539,18 @@ const paginator = await Post.paginate();
 GET /api/v1.0/posts?limit=10&page=1&paginate=length-aware
 ```
 
+`paginate` method takes only one argument to set page number up front. This could help us to continue where we left off. 
+
+```js
+const paginator = await Post.paginate( 18 );
+```
+
+```
+GET /api/v1.0/posts?limit=10&page=18&paginate=length-aware
+```
+
+Querying the next page with `next` method, as we will see in the next sections will increase the page number from the value we provided in the `paginate` method.
+
 #### Pagination Metadata
 The `LengthAwarePaginator` has a property named `page` which holds a `Page` instance. If the Rest API that we are requesting has included pagination metadata in its responses, this information is abstracted with the `Page` class, and we can access it through the paginator.
 
@@ -709,7 +721,7 @@ GET /api/v1.0/timeline
 All the items in the returned collection will be instance of `Post` model.
 
 ### Extending Current Resource
-Sometimes, we might want to extend the current resource some additions. To achieve this, we can use the `from` method with a callback function. Restorm will pass the current resource as the first argument to the callback function. We should return calculated resource back from the callback function.
+Sometimes, we might want to extend the current resource some additions. To achieve this, we can use the `from` method with a callback function. Restorm will pass the current resource as the first argument to the callback. We should return calculated resource back from it.
 
 ```js
 const posts = await Post
@@ -803,7 +815,7 @@ The result should look like this:
 
 The `post` method is very self-explanatory, it just sends a `POST` request to the api endpoint but the `save` method has something magical behind it.
 
-If the primary key (`id` in this case) is not set on the model instance like the example above, it will send a `POST` request, otherwise it will send a `PATCH` request. We will see that in the next sections.
+If the primary key (`id` in this case) is not set on the model instance like the example above, it will send a `POST` request, otherwise it will send a `PATCH` request.
 
 ## Update
 We can update an existing resource by sending a `PATCH` or `PUT` request to api endpoints.
@@ -817,10 +829,13 @@ Restorm smart enough to know which properties of the model you modified and that
 ```js
 const article = await Article.find( 1 );
 
+// let's modify the title
 article.title = "Jeff Bezos went to the Moon instead of Mars";
 
+// model has a primary key on it (id)
+// so save will send a `PATCH`
 await article.save();
-// or more explicitly
+// or we can be more explicit
 await article.patch();
 ```
 
@@ -838,7 +853,7 @@ And the resource will be like:
 }
 ```
 
-The `save` method will send a `PATCH` request if the case is about updating an existing resource. However, sometimes we really want to send a `PUT` request. We can do that by using the `put` method of Restorm.
+The `save` method will send a `PATCH` request if the case is about updating an existing resource. However, sometimes we really might want to send a `PUT` request. We can do that by using the `put` method of Restorm.
 
 ```js
 const state =
@@ -902,7 +917,7 @@ The event listeners that bound to a `QueryBuilder` will be effective only for th
 
 The first query will print the error object in the console when the api endpoint returns an 400, 500 http status code or a network error happens. But the second query won't log anything even if it has an error because it's running on a different query builder instance and we didn't bind any event listener to it.
 
-We can easily remove the event listeners by using `off` method but we should extract the `QueryBuilder` instance when using static methods of a models.
+We can easily remove the event listeners by using `off` method but we should extract the `QueryBuilder` instance when using static `on` method of a model.
 
 ```js
 const query = Post.on( "failed", gettingPostFailed );
@@ -965,7 +980,7 @@ await ( await Post.find( 1 ))
 	.patch({ title: "Lorem ipsum" });
 ```
 
-That would send two requests to the server. To reduce the number of requests, we can rewrite it like this:
+Yet even that would send two requests to the server and not error safe (find process can return an error object). To reduce the number of requests and be error safe we can rewrite it like this:
 
 ```js
 await Post
@@ -1084,7 +1099,7 @@ console.log( posts.contains( 1 ));
 Of course there is no need to mention we can use native `filter` or `find` array method to do more complex analysis to check if the collection contains a specific model.
 
 ## Diff
-Some case we might want to take a difference between two collections. We can use the `diff` method to get the difference between two collections.
+Some cases we might want to take a difference between two collections. We can use the `diff` method to get the difference between two collections.
 
 ```js
 const items = new Collection( 1, 2, 3, 4 );
