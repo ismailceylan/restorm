@@ -214,7 +214,7 @@ To list specific resources, we add filters with `where` and various methods like
 
 All the alternative methods listed above are implemented by `where` method under the hood.
 
-`where` method has 3 arguments. `target`, `operator` and `filter`. The first one is the name of the field, the second one is the operator and the third one is the filtering criteria. The operator is an optional one.
+`where` method has 3 arguments. `target`, `operator` and `filter`. The first one is the name of the field, the second one is the operator and the third one is the filtering criteria. The operator is the optional one.
 
 We can directly filter represented resources by models:
 
@@ -264,7 +264,7 @@ Restorm supports the following comparison operators in the `where` methods:
 | `like`       | `~`         | `where` | match if the given value containing |
 | `notlike`    | `!~`        | `where` | don't contain the given value |
 | `null`       | `=n`        | `where` `whereNull` | match if it's empty |
-| `notnull`    | `!n`        | `where` `whereNotNull` | don't match if it's not empty |
+| `notnull`    | `!n`        | `where` `whereNotNull` | match if it's not empty |
 
 ### Filtering Related Resource
 If the related resource that we included in by `with` method is kind of multiple (i.e., one-to-many), for example comments of a post, we can also indirectly add filters to these sub-resources (comments) to reduce the returned results.
@@ -322,19 +322,6 @@ GET /api/v1.0/posts?with=comments&filter[type]=eq:article&filter[comments.state]
 ```
 
 As you noticed, we doesn't have a way to apply operators on object syntax currently. The operator is defaultly assumed to be `equal` for the object syntax. Maybe we can improve it in the future.
-
-### Multiple Values
-We can also add multiple values for a filter.
-
-```js
-const posts = await Post.where( "type", [ "article", "news" ]).get();
-```
-
-This request will get all the posts of the `article` and `news` types.
-
-```
-GET /api/v1.0/posts?filter[type]=in:article,news
-```
 
 ## Sorting Resources
 The `orderBy` method is used to obtain results sorted by a specific field of resource.
@@ -482,7 +469,7 @@ GET /api/v1.0/posts?page=2
 ```
 
 #### Limit
-The `limit` method is used to specify the number of items per page.
+The `limit` method is used to specify the number of items per request.
 
 ```js
 const posts = await Post.limit( 10 ).all();
