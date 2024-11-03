@@ -1015,9 +1015,19 @@ export default class QueryBuilder
 	}
 
 	/**
+	 * @typedef CompiledQuery
+	 * @type {object}
+	 * @property {object} filter
+	 * @property {object} sort
+	 * @property {object} with
+	 * @property {object} field
+	 * @property {number} limit
+	 * @property {number} page
+	 */
+	/**
 	 * Returns an object containing all created filters and criteria.
 	 * 
-	 * @return {object}
+	 * @return {CompiledQuery}
 	 */
 	compile()
 	{

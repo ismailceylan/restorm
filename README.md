@@ -298,7 +298,7 @@ GET /api/v1.0/posts?filter[comments.state]=nin:owner-removed,banned
 With that filter, we could get all the comments that if their state not `owner-removed` and not `banned`.
 
 ### Object Syntax
-We can perform these operations in a more organized and concise manner through object syntax, providing a cleaner and more streamlined usage. For example, if we are using something like vue.js or react.js, we can manage operations on reactive objects and directly pass this object to the `where` method.
+We can perform these operations in a more organized and concise manner through object syntax, providing a cleaner and more streamlined usage. For example, if we are using something like vue.js, we can manage operations on reactive objects and directly pass this object to the `where` method.
 
 ```js
 const conditions =
@@ -735,6 +735,41 @@ GET /api/v1.0/posts/48/comments/4815/reactions
 ```
 
 In real world, reactions would belong to posts, comments, and even personal messages. Defining a static resource name in the model wouldn't work in this case. This is where the `from` method shines.
+
+## Casting
+Sometimes, we might want to cast the result of the query to a different type. To do this, restorm provides the `cast` method.
+
+This method has two overloads: First, it can register a caster for single field. Second, it can register a caster for all fields in the model at once.
+
+```js
+const posts = await Post
+	.cast( "price", value => parseFloat( value ))
+	.find( 12 );
+
+console.log( posts.price );
+// 12.99
+```
+
+It also can register casters with an object at once.
+
+```js
+const modifiers =
+{
+	post: value => markdown( value ),
+	colors: value => value.split( "," ),
+	price( value )
+	{
+		return parseFloat( value )
+	}
+}
+
+const posts = await Post.cast( modidifiers ).find( 12 );
+
+console.log( posts.price, posts.post );
+// 12.99
+// [red, green, blue]
+// Hello <b>World!</b>.
+```
 
 # CRUD Operations
 Restorm provides a set of methods that allow us to perform CRUD operations on RESTful resources, and we have seen above how to handle the `(R)ead` side by `get`, `all`, `find`, `first` methods.
