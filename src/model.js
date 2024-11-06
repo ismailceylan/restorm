@@ -682,7 +682,7 @@ export default class Model
 	/**
 	 * Instantiates the model with the given data.
 	 * 
-	 * @param {object} properties original data of the model
+	 * @param {object|string} properties original data of the model
 	 * @param {object} casts additional casting map to apply the model
 	 * when data retreived
 	 */
@@ -734,13 +734,21 @@ export default class Model
 	/**
 	 * Initializes model with data and casting map.
 	 * 
-	 * @param {object} properties original properties
+	 * @param {string|object} properties original properties
 	 * @param {object} casts casting map
 	 * @return {Model}
 	 */
 	init( properties, casts )
 	{
-		this.original = { ...this.original, ...properties }
+		if( typeof properties == "string" )
+		{
+			this.original = properties;
+		}
+		else
+		{
+			this.original = { ...this.original, ...properties }
+		}
+
 		this.#applyCasts( casts );
 		
 		return this;
