@@ -754,6 +754,11 @@ export default class Model
 		return this;
 	}
 
+	/**
+	 * Copies the given model's original properties to the current model.
+	 * @param {Model} model the model to be assimilated
+	 * @return {Model} this model
+	 */
 	assimilateTo( model )
 	{
 		this.original = model.original;
