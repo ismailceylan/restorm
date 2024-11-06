@@ -760,6 +760,10 @@ export default class QueryBuilder
 			{
 				events.push( "network-error" );
 			}
+			else if( err.code == "ERR_BAD_REQUEST" )
+			{
+				events.push( "client-bad-request", err.message );
+			}
 			else
 			{
 				events.push( err.response.status );

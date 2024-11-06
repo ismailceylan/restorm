@@ -1067,16 +1067,17 @@ Now, first, failed queries that related to the `Post` model will be logged to th
 Restorm currently doesn't support a way to explicitly removing event listeners that inherited from parent models. But at least, we can overwrite them and left it's body empty. With that way, the listener will still be there and it will be triggered but with no effect.
 
 ## Events List
-| Event Name      | When |
-| :-------------- | :--- |
-| `waiting`       | request is initiated and waiting for the response |
-| `success`       | request was successful with a status code 200-299 range |
-| `failed`        | request was failed with a status code that is in the 400-599 range |
-| `finished`      | request is finished, regardless of its outcome |
-| `canceled`      | request is canceled by Restorm or the user before it finished |
-| `paginated`     | request is finished, pagination is ready |
-| `network-error` | request failed due to a network level error |
-| `[StatusCodes]` | request is finished and the server responds with the corresponding status code. For example, if the server responds with a 404 status code, the `404` event is triggered. |
+| Event Name           | When |
+| :------------------- | :--- |
+| `waiting`            | request is initiated and waiting for the response |
+| `success`            | request was successful with a status code 200-299 range |
+| `failed`             | request was failed with a status code that is in the 400-599 range |
+| `finished`           | request is finished, regardless of its outcome |
+| `canceled`           | request is canceled by Restorm or the user before it finished |
+| `paginated`          | request is finished, pagination is ready |
+| `network-error`      | request failed due to a network level error |
+| `client-bad-request` | request failed due to bad request at client side (it's not same 400 status code) |
+| `[StatusCodes]`      | request is finished and the server responds with the corresponding status code. For example, if the server responds with a 404 status code, the `404` event is triggered. |
 
 # Collections
 Restorm provides a structure for handling a set of model instances. We prefer to call it a collection. It extends native `Array` constructor. So we can say that collections a specialized type of array.
