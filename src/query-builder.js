@@ -892,7 +892,10 @@ export default class QueryBuilder
 			}
 		}
 
-		this.resource = endpoint.join( "/" );
+		this.resource = endpoint
+			// we should remove empty elements
+			.filter( i => i )
+			.join( "/" );
 
 		return this;
 	}
