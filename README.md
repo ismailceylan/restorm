@@ -781,44 +781,58 @@ On HTTP protocol, a resource creation should be performed by sending a `POST` re
 
 We designed a few alternative ways to create resources.
 
-First, we can create resources as model instances and send them.
+### Instantiating The Model And Posting
+Restorm allows us to create resources as model instances and post them.
+
+First, we need to create a model instance. Let's create a new instance of `Article` model.
 
 ```js
 const title = "Elon Musk went to the Moon instead of Mars";
 const content = "Yeah! You heard right, he did just like that! Unbelievable.";
 
 const draft = new Article({ title });
+```
 
-// and we can assign missed properties later to the model
+Now, we have an instance of `Article` model and the data setted on it. It currently doesn't have any id because it is a new resource and hasn't been saved yet.
+
+Assigning missed properties to the model instance at this moment is possible.
+
+```js
 draft.content = content;
+```
 
+Now we are ready to post it. We can explicitly post the model instance with the `post` method.
+
+```js
 const article = await draft.post();
-// or
-const article = await draft.save();
+```
 
-if( article instanceof Error )
+```
+POST /api/v1.0/articles
+```
+
+`post` method returns a promise that will be fulfilled with an instance of `Article` model or an `Error` if there is an issue about the network or server side.
+
+```js
+if( article instanceof Article )
 {
-	console.log( "network or server errors", article );
+	console.log( article.id );
+	// 2
 }
 ```
 
-The `post` method returns a promise that will be fulfilled with an instance of `Article` model or an `Error` if there is an issue about the network or server side. The Restorm won't throw any network or server errors. That means you can't catch them with `async-await & try-catch` or `then-catch` mechanism. Restorm will supress throwing all the HTTP errors with 400 and 500 status codes and network errors as well.
-
-If you want to handle these kinds of errors, you can add event listeners to your queries or models, or you can handle them manually at that very moment when they are returned by the `post` method.
-
-If Restorm detects issues with the usage of its methods, it will throw an error and stop your application. You shouldn't catch and handle these kind of errors manually or suppress them; you need to resolve and eliminate them.
-
-Let's go back the examples. We could also statically use the `post` method.
+### Statically Posting
+Restorm also provides a static `post` method on models. That means we don't have to create a model instance to post a resource.
 
 ```js
-const newArticle = await Article.post(
+const article = await Article.post(
 {
 	title: "Elon Musk went to the Moon instead of Mars",
 	content: "Yeah! You heard right, he did just like that! Unbelievable."
 });
 
-console.log( newArticle.id );
-// 1
+console.log( article.id );
+// 2
 ```
 
 ```
@@ -829,15 +843,25 @@ The result should look like this:
 
 ```json
 {
-	"id": 1,
+	"id": 2,
 	"title": "Elon Musk went to the Moon instead of Mars",
 	"content": "Yeah! You heard right, he did just like that! Unbelievable."
 }
 ```
 
-The `post` method is very self-explanatory, it just sends a `POST` request to the api endpoint but the `save` method has something magical behind it.
+### Handling Network and Server Errors
+The Restorm won't throw `Error` or reject the promise when there are network or server errors. That means you can't catch them with `try-catch` or `then-catch` mechanism. Restorm will supress throwing all the HTTP errors with 400 and 500 status codes and network errors as well.
 
-If the primary key (`id` in this case) is not set on the model instance like the example above, it will send a `POST` request, otherwise it will send a `PATCH` request.
+If you want to handle these kinds of errors, you can add event listeners to your queries or models, or you can handle them manually at that very moment when they are returned by the `post` method.
+
+```js
+if( article instanceof Error )
+{
+	console.log( "network or server errors", article );
+}
+```
+
+If Restorm detects issues with the usage of its methods, it will throw an error and stop your application. You shouldn't catch and handle these kind of errors manually or suppress them; you need to resolve and eliminate them.
 
 ## Update
 We can update an existing resource by sending a `PATCH` or `PUT` request to api endpoints.
