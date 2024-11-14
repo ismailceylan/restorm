@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.10.0](https://github.com/ismailceylan/restorm/compare/v1.9.0...v1.10.0) (2024-11-14)
+
+
+### Features
+
+* **query-builder:** add mustache syntax support for dynamic url generation ([cb2fc3f](https://github.com/ismailceylan/restorm/commit/cb2fc3f306dcb30d163a7250f4185ee751d741f6))
+
+
+### Bug Fixes
+
+* **model:** accept strings as model ([3c45b0a](https://github.com/ismailceylan/restorm/commit/3c45b0a60ab9b3e2ea68e5733edb4638a2a1d2f8))
+* **query-builder:** catch client side bad requests ([eadccbb](https://github.com/ismailceylan/restorm/commit/eadccbb91779c7f7bf5987135bfde7f54b23b91c))
+* **query-builder:** trailing slash problem ([8a76686](https://github.com/ismailceylan/restorm/commit/8a76686d4d17c437d92a8c55811028f441f2a8d6))
+
 ## [1.9.0](https://github.com/ismailceylan/restorm/compare/v1.8.0...v1.9.0) (2024-06-17)
 
 
