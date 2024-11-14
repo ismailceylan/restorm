@@ -734,7 +734,7 @@ const reactions = await Reaction.from( post, comment, "reactions" ).all();
 GET /api/v1.0/posts/48/comments/4815/reactions
 ```
 
-In real world, reactions would belong to posts, comments, and even personal messages. Defining a static resource name in the model wouldn't work in this case. This is where the `from` method shines.
+In real world, reactions would belong to posts, comments, and even personal messages. Defining a static resource name in the reactions model wouldn't work in this case. This is where the `from` method shines.
 
 ## Casting
 Sometimes, we might want to cast the result of the query to a different type. To do this, restorm provides the `cast` method.
@@ -811,7 +811,7 @@ const article = await draft.post();
 POST /api/v1.0/articles
 ```
 
-`post` method returns a promise that will be fulfilled with an instance of `Article` model or an `Error` if there is an issue about the network or server side.
+`post` method returns a never rejecting promise that will be fulfilled with an instance of `Article` model or an `Error` if there is an issue about the network or server side.
 
 ```js
 if( article instanceof Article )
@@ -849,20 +849,6 @@ The result should look like this:
 }
 ```
 
-### Handling Network and Server Errors
-The Restorm won't throw `Error` or reject the promise when there are network or server errors. That means you can't catch them with `try-catch` or `then-catch` mechanism. Restorm will supress throwing all the HTTP errors with 400 and 500 status codes and network errors as well.
-
-If you want to handle these kinds of errors, you can add event listeners to your queries or models, or you can handle them manually at that very moment when they are returned by the `post` method.
-
-```js
-if( article instanceof Error )
-{
-	console.log( "network or server errors", article );
-}
-```
-
-If Restorm detects issues with the usage of its methods, it will throw an error and stop your application. You shouldn't catch and handle these kind of errors manually or suppress them; you need to resolve and eliminate them.
-
 ## Update
 We can update an existing resource by sending a `PATCH` or `PUT` request to api endpoints.
 
@@ -870,7 +856,7 @@ As you know already the `PUT` is used to update an existing resource as a whole.
 
 The `PATCH` on the other hand, is used to update only some of the properties of the resource and missing properties will be stay as they are. This is what makes `PATCH` lightweight compared to `PUT`.
 
-Restorm smart enough to know which properties of the model you modified and that gives us an opportunity to send always a lightweight `PATCH` request instead of a `PUT`.
+Restorm smart enough to know which properties of the model you modified and that gives us an opportunity to send just the modified properties when you used `PATCH` method.
 
 ```js
 const article = await Article.find( 1 );
@@ -935,6 +921,20 @@ And the resource should be like:
 }
 ```
 
+## Handling Network and Server Errors
+The Restorm won't throw `Error` or reject the promise when there are network or server errors. That means you can't catch them with `try-catch` or `then-catch` mechanism. Restorm will supress throwing all the HTTP errors with 400 and 500 status codes and network errors as well.
+
+If you want to handle these kinds of errors, you can add event listeners to your queries or models, or you can handle them manually at that very moment when they are resolved by the `post` method.
+
+```js
+if( article instanceof Error )
+{
+	console.log( "network or server errors", article );
+}
+```
+
+If Restorm detects issues with the usage of its methods, it will throw an error and stop your application. You shouldn't catch and handle these kind of errors manually or suppress them; you need to resolve and eliminate them.
+
 # Event Management
 Restorm provides an event management system to handle network errors, server errors and internal events. 
 
@@ -948,8 +948,8 @@ Multiple event listeners can be added for a single event. The bound event listen
 
 ## QueryBuilder Event Binding
 ```js
-const post = await Post.on( "failed", gettingPostFailed ).find( 1 );
-const another = await Post.find( 2 );
+const post1 = await Post.on( "failed", gettingPostFailed ).find( 1 );
+const post2 = await Post.find( 2 );
 
 function gettingPostFailed( err )
 {
@@ -966,12 +966,12 @@ The first query will print the error object in the console when the api endpoint
 We can easily remove the event listeners by using `off` method but we should extract the `QueryBuilder` instance when using static `on` method of a model.
 
 ```js
-const query = Post.on( "failed", gettingPostFailed );
-const post = await query.find( 1 );
+const queryBuilder = Post.on( "failed", gettingPostFailed );
+const post1 = await queryBuilder.find( 1 );
 
-query.off( "failed", gettingPostFailed );
+queryBuilder.off( "failed", gettingPostFailed );
 
-const anotherPost = await query.find( 2 );
+const post2 = await queryBuilder.find( 2 );
 ```
 
 Even if the second attempt has an error, it won't be logged because we unbound the event listener from it.
