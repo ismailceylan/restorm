@@ -856,18 +856,21 @@ As you know already the `PUT` is used to update an existing resource as a whole.
 
 The `PATCH` on the other hand, is used to update only some of the properties of the resource and missing properties will be stay as they are. This is what makes `PATCH` lightweight compared to `PUT`.
 
+### PATCH
 Restorm smart enough to know which properties of the model you modified and that gives us an opportunity to send just the modified properties when you used `PATCH` method.
 
+First of all we have to grab the remote resource as a model.
 ```js
 const article = await Article.find( 1 );
+```
 
-// let's modify the title
+Now we can modify the resource on the fly.
+```js
 article.title = "Jeff Bezos went to the Moon instead of Mars";
+```
 
-// model has a primary key on it (id)
-// so save will send a `PATCH`
-await article.save();
-// or we can be more explicit
+And now, we can sync local changes to the server.
+```js
 await article.patch();
 ```
 
@@ -885,7 +888,8 @@ And the resource will be like:
 }
 ```
 
-The `save` method will send a `PATCH` request if the case is about updating an existing resource. However, sometimes we really might want to send a `PUT` request. We can do that by using the `put` method of Restorm.
+### PUT
+Sometimes we really might want to send a `PUT` request. We can do that by using the `put` method of Restorm.
 
 ```js
 const state =
