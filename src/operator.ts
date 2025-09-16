@@ -7,27 +7,23 @@ export default class Operator
 {
 	/**
 	 * The operator.
-	 * 
-	 * @type {string}
 	 */
-	operator = null;
+	operator: string = null;
 
 	/**
 	 * Creates a new operator.
 	 * 
-	 * @param {string} operator
+	 * @param operator the operator as string
 	 */
-	constructor( operator )
+	constructor( operator: string )
 	{
 		this.operator = operator;
 	}
 
 	/**
 	 * Returns the corresponding string representation of the operator.
-	 *
-	 * @return {string}
 	 */
-	toString()
+	toString(): string
 	{
 		return operatorMap[ this.operator ] || this.operator;
 	}

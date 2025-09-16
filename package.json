@@ -14,6 +14,10 @@
     "model",
     "axios"
   ],
+  "files": [
+    "index.js",
+    "src"
+  ],
   "author": "Ismail Ceylan",
   "license": "ISC",
   "dependencies": {

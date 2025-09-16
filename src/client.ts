@@ -1,30 +1,40 @@
-import Axios from "axios";
+import Axios, { type AxiosInstance, AxiosResponse } from "axios";
+import { Model, QueryBuilder } from ".";
+import { isPlainObject } from "./utils";
 
-/**
- * @typedef {import('axios').AxiosResponse} AxiosResponse
- */
 export default class Client
 {
 	/**
 	 * Abortion interface.
-	 * 
-	 * @type {AbortController}
 	 */
-	abortController = new AbortController;
+	abortController: AbortController = new AbortController;
+
+	/**
+	 * Query builder instance.
+	 */
+	query: QueryBuilder;
+
+	/**
+	 * Model constructor.
+	 */
+	model: typeof Model;
+
+	/**
+	 * HTTP client interface.
+	 */
+	http: AxiosInstance;
 
 	/**
 	 * Instantiate a client interface.
-	 * 
-	 * @param {QueryBuilder} query 
 	 */
-	constructor( query )
+	constructor( query: QueryBuilder )
 	{
 		this.query = query;
 		this.model = query.model;
 
 		this.http = Axios.create(
 		{
-			baseURL: query.model.baseURL
+			baseURL: query.model.baseURL,
 		});
 	}
 
@@ -43,10 +53,8 @@ export default class Client
 	/**
 	 * Performs `GET` request and returns a promise to fullfill when
 	 * received a successful response.
-	 * 
-	 * @return {Promise<AxiosResponse>}
 	 */
-	get()
+	get(): Promise<AxiosResponse>
 	{
 		return this.http.get(
 			this.query.getResource(),
@@ -61,14 +69,15 @@ export default class Client
 	 * Performs `PUT` request and returns a promise to fullfil when
 	 * received a succesfull response.
 	 * 
-	 * @param {string|number|object} primaryKeyValueOrPayload primary key
-	 * value or payload
-	 * @param {object=} payload payload object to put endpoint
-	 * @return {Promise<AxiosResponse>}
+	 * @param primaryKeyValueOrPayload primary key value or payload
+	 * @param payload payload object to put endpoint
 	 */
-	put( primaryKeyValueOrPayload, payload )
+	put(
+		primaryKeyValueOrPayload: string | number | object,
+		payload?: object
+	): Promise<AxiosResponse>
 	{
-		if( arguments.length == 1 )
+		if( arguments.length == 1 && isPlainObject( primaryKeyValueOrPayload ))
 		{
 			payload = primaryKeyValueOrPayload;
 			primaryKeyValueOrPayload = this.query.modelInstance.primary;
@@ -86,10 +95,10 @@ export default class Client
 	 * Performs a `POST` request and returns a promise to fulfill when
 	 * a successful response is received.
 	 *
-	 * @param {object} payload - the data to be sent in the request
-	 * @return {Promise<AxiosResponse>} a promise that resolves with the response data
+	 * @param payload - the data to be sent in the request
+	 * @return a promise that resolves with the response data
 	 */
-	post( payload )
+	post( payload: object ): Promise<AxiosResponse>
 	{
 		return this.http.post(
 			this.query.getResource(),
@@ -104,10 +113,9 @@ export default class Client
 	 * Performs `PATCH` request and returns a promise to fullfil when
 	 * received a succesfull response.
 	 * 
-	 * @param {object} payload field and values for patch resource
-	 * @return {Promise<AxiosResponse>}
+	 * @param payload field and values for patch resource
 	 */
-	patch( payload )
+	patch( payload: object ): Promise<AxiosResponse>
 	{
 		const url = this.query.getResource() + "/" + this.query.modelInstance.primary;
 

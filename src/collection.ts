@@ -3,65 +3,70 @@ import { Model } from ".";
 /**
  * Extends the built-in Array class.
  */
-export default class Collection extends Array
+export default class Collection<T = void> extends Array<T>
 {
+	static get [ Symbol.species ]()
+	{
+		return Array;
+	}
+
 	/**
 	 * Returns first item of the collection.
-	 * 
-	 * @return {*|undefined}
 	 */
-	first()
+	first(): T
 	{
 		return this[ 0 ];
 	}
 
 	/**
 	 * Returns latest item of the collection.
-	 * 
-	 * @return {*|undefined}
 	 */
-	last()
+	last(): T
 	{
-		return this.at( -1 );
+		return this[ this.length - 1 ];
 	}
 
 	/**
 	 * Creates and returns a new collection consisting of the
 	 * data in a field called.
 	 * 
-	 * @param {string} field field name whose values will be collected
-	 * @return {Collection}
+	 * @param field field name whose values will be collected
 	 */
-	pluck( field )
+	pluck<K extends keyof T>( field: K ): Collection<T[K]>
 	{
-		const stack = [];
+		const stack: T[K][] = [];
 
 		this.forEach( item =>
 		{
-			(( item instanceof Model && item.has( field )) || item.hasOwnProperty( field )) &&
+			const hasField = ( item instanceof Model && item.has( field )) || item.hasOwnProperty( field );
+
+			if( hasField )
+			{
 				stack.push( item[ field ])
+			}
 		});
 
-		return new Collection( stack );
+		return new Collection( ...stack );
 	}
 
 	/**
 	 * Returns the json string representation of the collection.
-	 * 
-	 * @return {string}
 	 */
-	toJson()
+	toJson(): string
 	{
-		return JSON.stringify( this );
+		return JSON.stringify(
+			this.map( item =>
+				item instanceof Model? item.original : item
+			),
+		);
 	}
 
 	/**
 	 * Checks if the collection contains the given model or primary key.
 	 * 
-	 * @param {Model|number|string} modelOrPrimaryKey 
-	 * @return {boolean}
+	 * @param modelOrPrimaryKey model or primary key
 	 */
-	contains( modelOrPrimaryKey )
+	contains( modelOrPrimaryKey: Model | number | string ): boolean
 	{
 		const isTargetModel = modelOrPrimaryKey instanceof Model;
 
@@ -112,24 +117,41 @@ export default class Collection extends Array
 	 * This method filters out the elements from the current collection that
 	 * are present in the provided items.
 	 *
-	 * @param {...Model|Collection<Model>|Model[]} items - The items to compare with
-	 * the current collection. Can be a spread of arguments or a single collection.
-	 * @return {Collection} A new collection with elements from the current
-	 * collection that are not present in the provided items.
+	 * @param items - The items to compare with the current collection. Can
+	 * be a spread of arguments or a single collection.
+	 * @return A new collection with elements from the current collection
+	 * that are not present in the provided items.
 	 */
-	diff( ...items )
+	diff( ...items: ( T | Collection<T> | T[])[]): Collection<T>
 	{
-		if( items.length === 1 && Array.isArray( items[ 0 ]))
+		// normalize to a flat Collection<T>
+		let compare: Collection<T>;
+	
+		if( items.length === 1 )
 		{
-			items = new Collection( ...items[ 0 ]);
+			const first = items[ 0 ];
+		
+			if( first instanceof Collection )
+			{
+				compare = first;
+			}
+			else if( Array.isArray( first ))
+			{
+				compare = new Collection<T>( ...first );
+			}
+			else
+			{
+				compare = new Collection<T>( first as T );
+			}
 		}
-		else if( items.length > 0 )
+		else
 		{
-			items = new Collection( ...items );
+			compare = new Collection<T>( ...items as T[]);
 		}
 
-		return this.filter( item =>
-			! items.contains( item )
+		return new Collection<T>(
+			...this.filter( item => ! compare.includes( item ))
 		);
 	}
+
 }

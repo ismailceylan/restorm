@@ -5,27 +5,23 @@ export default class Page
 {
 	/**
 	 * Metadata repo.
-	 * 
-	 * @type {object}
 	 */
-	meta = {}
+	meta: PageMetas = {}
 
 	/**
 	 * Sets current page number.
 	 * 
-	 * @param {number} value current page
+	 * @param value current page
 	 */
-	set currentPage( value )
+	set currentPage( value: number )
 	{
 		this.meta.currentPage = value;
 	}
 
 	/**
 	 * Returns current page number.
-	 * 
-	 * @return {number}
 	 */
-	get currentPage()
+	get currentPage(): number
 	{
 		return this.meta.currentPage;
 	}
@@ -33,19 +29,17 @@ export default class Page
 	/**
 	 * Sets from number.
 	 * 
-	 * @param {number} value from number
+	 * @param value from number
 	 */
-	set from( value )
+	set from( value: number )
 	{
 		this.meta.from = value;
 	}
 
 	/**
 	 * Returns from number.
-	 * 
-	 * @return {number}
 	 */
-	get from()
+	get from(): number
 	{
 		return this.meta.from;
 	}
@@ -53,19 +47,17 @@ export default class Page
 	/**
 	 * Sets last page number.
 	 * 
-	 * @param {number} value last page number
+	 * @param value last page number
 	 */
-	set lastPage( value )
+	set lastPage( value: number )
 	{
 		this.meta.lastPage = value;
 	}
 
 	/**
 	 * Returns last page number.
-	 * 
-	 * @return {number}
 	 */
-	get lastPage()
+	get lastPage(): number
 	{
 		return this.meta.lastPage;
 	}
@@ -73,19 +65,17 @@ export default class Page
 	/**
 	 * Sets items per page number.
 	 * 
-	 * @param {number} value items per page number
+	 * @param value items per page number
 	 */
-	set perPage( value )
+	set perPage( value: number )
 	{
 		this.meta.perPage = value;
 	}
 
 	/**
 	 * Returns items per page number.
-	 * 
-	 * @return {number}
 	 */
-	get perPage()
+	get perPage(): number
 	{
 		return this.meta.perPage;
 	}
@@ -93,19 +83,17 @@ export default class Page
 	/**
 	 * Sets the position of the last item among all items.
 	 * 
-	 * @param {number} value relative position of the last item
+	 * @param value relative position of the last item
 	 */
-	set to( value )
+	set to( value: number )
 	{
 		this.meta.to = value;
 	}
 
 	/**
 	 * Returns the position of the last item among all items.
-	 * 
-	 * @return {number}
 	 */
-	get to()
+	get to(): number
 	{
 		return this.meta.to;
 	}
@@ -113,30 +101,36 @@ export default class Page
 	/**
 	 * Sets total item count.
 	 * 
-	 * @param {number} value total items count
+	 * @param value total items count
 	 */
-	set total( value )
+	set total( value: number )
 	{
 		this.meta.total = value;
 	}
 
 	/**
 	 * Returns total item count.
-	 * 
-	 * @return {number}
 	 */
-	get total()
+	get total(): number
 	{
 		return this.meta.total;
 	}
 
 	/**
 	 * Returns if current page was the latest page or not.
-	 * 
-	 * @return {boolean}
 	 */
-	get end()
+	get end(): boolean
 	{
 		return this.currentPage >= this.lastPage;
 	}
+}
+
+export interface PageMetas
+{
+	currentPage?: number;
+	from?: number;
+	lastPage?: number;
+	perPage?: number;
+	to?: number;
+	total?: number;
 }

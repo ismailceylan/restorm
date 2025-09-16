@@ -601,7 +601,7 @@ For example, while our post data may be provided through Django and user data ma
 
 ```js
 // models/base-model.js
-import { Model } from "restorm";
+import { Model } from "@iceylan/restorm";
 
 class BaseModel extends Model
 {
@@ -765,7 +765,7 @@ const modifiers =
 
 const posts = await Post.cast( modidifiers ).find( 12 );
 
-console.log( posts.price, posts.post );
+console.log( posts.price, post.colors, posts.post );
 // 12.99
 // [red, green, blue]
 // Hello <b>World!</b>.
@@ -1147,7 +1147,7 @@ console.log( posts.contains( post ));
 console.log( posts.contains( 1 ));
 ```
 
-Of course there is no need to mention we can use native `filter` or `find` array method to do more complex analysis to check if the collection contains a specific model.
+Of course there is no need to mention we can use native `filter` or `find` array methods to do more complex analysis to check if the collection contains a specific model.
 
 ## Diff
 Some cases we might want to take a difference between two collections. We can use the `diff` method to get the difference between two collections.

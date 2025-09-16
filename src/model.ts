@@ -1,83 +1,118 @@
-import { Collection, QueryBuilder } from ".";
 import { camelToDash } from "./utils";
+import { Collection, LengthAwarePaginator, Page, QueryBuilder } from ".";
+import { AxiosResponse, AxiosError } from "axios";
+import type { EventListenerOptions, EventMap, FieldArg } from "./query-builder";
+import type { RestormResponse, WhereCondition, WhereOperators } from "./query-builder";
 
-/**
- * @typedef {import('axios').AxiosResponse} AxiosResponse
- * @typedef {import('axios').AxiosError} AxiosError
- */
 export default class Model
 {
 	/**
 	 * The field name to use as the primary key.
-	 * 
-	 * @static
-	 * @type {string}
 	 */
-	static primaryKey = "id";
+	static primaryKey: string = "id";
 
 	/**
 	 * The root URL for the API that serving resources restful way.
-	 * 
-	 * @static
-	 * @type {string}
 	 */
-	static baseURL = "";
+	static baseURL: string = "";
 
 	/**
 	 * The resource url piece that the model targets.
-	 * 
-	 * @static
-	 * @type {string}
 	 */
-	static resource = "";
+	static resource: string = "";
 
 	/**
 	 * Cast map to be applied to all models.
-	 * 
-	 * @static
-	 * @type {object}
 	 */
-	static casts = {}
+	static casts: object = {}
 
 	/**
-	 * The QueryBuilder instance that will be used to query the API.
-	 * 
-	 * @type {QueryBuilder}
+	 * The default number of items per page.
 	 */
-	query = null;
+	static itemsPerPage: number = 10;
+	
+	/**
+	 * The QueryBuilder instance for the model instance.
+	 */
+	query: null|QueryBuilder = null;
 
 	/**
 	 * Modifications made to the represented model instance.
-	 * 
-	 * @type {object}
 	 */
-	modified = {}
+	modified: object = {}
 
 	/**
 	 * Safe area for the original data of the model instance.
-	 * 
-	 * @type {object}
 	 */
-	original = {}
+	original: object = {}
 
 	/**
-	 * Tells whether any modifications have been made to the
-	 * model instance.
-	 * 
-	 * @type {boolean}
+	 * Tells whether any modifications have been made to the model instance.
 	 */
-	isDirty = false;
+	isDirty: boolean = false;
 
 	/**
-	 * Returns the value of the primary key whose name is defined
-	 * on the model.
-	 * 
-	 * @readonly
-	 * @return {string}
+	 * Returns the value of the primary key whose name is defined on the model.
 	 */
-	get primary()
+	get primary(): string
 	{
-		return this.original[ this.constructor.primaryKey ];
+		return this.original[
+			( this.constructor as typeof Model ).primaryKey
+		];
+	}
+
+	/**
+	 * Instantiates the model with the given data.
+	 * 
+	 * @param properties original data of the model
+	 * @param casts additional casting map to apply the model when data retreived
+	 */
+	constructor( properties: object = {}, casts = {})
+	{
+		this.init( properties, casts );
+
+		this.query = ( this.constructor as typeof Model ).createBuilder( this );
+
+		return new Proxy( this,
+		{
+			set( instance, key, val )
+			{
+				if( key === "original" )
+				{
+					instance.original = val;
+				}
+				// if the new value is same as original, then
+				// it doesn't need to be in the modified
+				else if( instance.original[ key ] === val )
+				{
+					// value set is same as original, so if we
+					// have a modified key we can delete it
+					// let's check if it exists in modified
+					if( key in instance.modified )
+					{
+						delete instance.modified[ key ];
+						instance.isDirty = Object.keys( instance.modified ).length > 0;
+					}
+				}
+				else
+				{
+					instance.modified[ key ] = val;
+					instance.isDirty = true;
+				}
+		
+				return true;
+			},
+
+			get( instance, key, o )
+			{
+				if( key === Symbol.toStringTag )
+				{
+					return "Model";
+				}
+
+				return instance.original[ key ] || instance[ key ];
+			}
+		});
 	}
 
 	/**
@@ -86,10 +121,9 @@ export default class Model
 	 * 
 	 * --------------------------------------------------------
 	 * 
-	 * @param {string|array|object} singleFieldNameFieldsArrOrFieldsMap field
+	 * @param singleFieldNameFieldsArrOrFieldsMap field
 	 * name fields array or fields map object
-	 * @param {array} fields fields list
-	 * @return {QueryBuilder}
+	 * @param fields fields list
 	 * @example
 	 * ```js
 	 * // adding fields to the model
@@ -105,9 +139,14 @@ export default class Model
 	 * })
 	 * ```
 	 */
-	static select( singleFieldNameFieldsArrOrFieldsMap, fields = [])
+	static select(
+		singleFieldNameFieldsArrOrFieldsMap: string | string[] | object,
+		fields: any[] = []
+	): QueryBuilder
 	{
-		return this.createBuilder().select( ...arguments );
+		return this
+			.createBuilder()
+			.select( singleFieldNameFieldsArrOrFieldsMap, fields );
 	}
 
 	/**
@@ -116,10 +155,6 @@ export default class Model
 	 * 
 	 * ------------------------------------------------
 	 * 
-	 * @param {string|string[]|object} fieldNameOrWhereMap 
-	 * @param {string|value} operatorOrValue
-	 * @param {string|array} value 
-	 * @return {QueryBuilder}
 	 * @example
 	 * ### Filtering Current Resource Field
 	 * ```js
@@ -162,19 +197,24 @@ export default class Model
 	 * });
 	 * ```
 	 */
-	static where( fieldNameOrWhereMap, operatorOrValue, value )
+	static where(
+		fieldNameOrWhereMap: FieldArg,
+		operatorOrValue: WhereOperators,
+		value: WhereCondition
+	): QueryBuilder
 	{
-		return this.createBuilder().where( ...arguments );
+		return this
+			.createBuilder()
+			.where( fieldNameOrWhereMap as any, operatorOrValue as WhereOperators, value );
 	}
 
 	/**
 	 * Creates a QueryBuilder instance, adds a where clause to check
 	 * if a field is null, and returns the QueryBuilder.
 	 *
-	 * @param {string|object|string[]} fieldNameOrWhereMap name of the field to check for null
-	 * @return {QueryBuilder}
+	 * @param fieldNameOrWhereMap name of the field to check for null
 	 */
-	static whereNull( fieldNameOrWhereMap )
+	static whereNull( fieldNameOrWhereMap: FieldArg ): QueryBuilder
 	{
 		return this.createBuilder().whereNull( fieldNameOrWhereMap );
 	}
@@ -183,10 +223,9 @@ export default class Model
 	 * Creates a QueryBuilder instance, adds a where clause to check
 	 * if a field is not null, and returns the QueryBuilder.
 	 *
-	 * @param {string|object|string[]} fieldNameOrWhereMap name of the field to check for not null
-	 * @return {QueryBuilder}
+	 * @param fieldNameOrWhereMap name of the field to check for not null
 	 */
-	static whereNotNull( fieldNameOrWhereMap )
+	static whereNotNull( fieldNameOrWhereMap: FieldArg ): QueryBuilder
 	{
 		return this.createBuilder().whereNotNull( fieldNameOrWhereMap );
 	}
@@ -195,54 +234,61 @@ export default class Model
 	 * Creates a QueryBuilder instance, adds a where clause to check
 	 * if a field is between two values, and returns the QueryBuilder.
 	 *
-	 * @param {string|string[]|object} fieldNameOrWhereMap name of field to check for between values
-	 * @param {number[]} range minimum and maximum value
-	 * @param {boolean} [not=false] whether to negate the condition
-	 * @return {QueryBuilder}
+	 * @param fieldNameOrWhereMap name of field to check for between values
+	 * @param range minimum and maximum value
+	 * @param not whether to negate the condition
 	 */
-	static whereBetween( fieldNameOrWhereMap, range = null, not = false )
+	static whereBetween(
+		fieldNameOrWhereMap: FieldArg,
+		range: null | number[] = null,
+		not: boolean = false
+	): QueryBuilder
 	{
-		return this.createBuilder().whereBetween( fieldNameOrWhereMap, range, not );
+		return this
+			.createBuilder()
+			.whereBetween( fieldNameOrWhereMap, range, not );
 	}
 
 	/**
 	 * Creates a QueryBuilder instance, adds a where clause to check
 	 * if a field is not between two values, and returns the QueryBuilder.
 	 *
-	 * @param {string|string[]|object} fieldNameOrWhereMap name of field to
+	 * @param fieldNameOrWhereMap name of field to
 	 * check for not between values
-	 * @param {number[]} range minimum and maximum value
-	 * @return {QueryBuilder}
+	 * @param range minimum and maximum value
 	 */
-	static whereNotBetween( fieldNameOrWhereMap, range )
+	static whereNotBetween(
+		fieldNameOrWhereMap: FieldArg,
+		range: number[]
+	): QueryBuilder
 	{
-		return this.createBuilder().whereNotBetween( fieldNameOrWhereMap, range );
+		return this
+			.createBuilder()
+			.whereNotBetween( fieldNameOrWhereMap, range );
 	}
 
 	/**
 	 * Creates a QueryBuilder instance, adds a where clause to check if a
 	 * field is in a list of values, and returns the QueryBuilder.
 	 *
-	 * @param {string|string[]|object} fieldNameOrWhereMap name of field to
-	 * check for values in the list
-	 * @param {Array} values list of values to check against
-	 * @return {QueryBuilder}
+	 * @param fieldNameOrWhereMap name of field to check for values in the list
+	 * @param values list of values to check against
 	 */
-	static whereIn( fieldNameOrWhereMap, values )
+	static whereIn( fieldNameOrWhereMap: FieldArg, values: []): QueryBuilder
 	{
-		return this.createBuilder().whereIn( fieldNameOrWhereMap, values );
+		return this
+			.createBuilder()
+			.whereIn( fieldNameOrWhereMap, values );
 	}
 
 	/**
 	 * Creates a QueryBuilder instance, adds a where clause to check if a
 	 * field is not in a list of values, and returns the QueryBuilder.
 	 *
-	 * @param {string|string[]|object} fieldNameOrWhereMap name of the field
-	 * to check for not in values
-	 * @param {Array} values list of values to check against
-	 * @return {QueryBuilder}
+	 * @param fieldNameOrWhereMap name of the field to check for not in values
+	 * @param values list of values to check against
 	 */
-	whereNotIn( fieldNameOrWhereMap, values )
+	static whereNotIn( fieldNameOrWhereMap: FieldArg, values: []): QueryBuilder
 	{
 		return this.createBuilder().whereNotIn( fieldNameOrWhereMap, values );
 	}
@@ -253,9 +299,8 @@ export default class Model
 	 * 
 	 * ------------------------------------------------
 	 * 
-	 * @param {string|object} field field name or an object to order by
-	 * @param {"asc"|"desc"} mode order mode (asc or desc)
-	 * @return {QueryBuilder}
+	 * @param field field name or an object to order by
+	 * @param mode order mode (asc or desc)
 	 * @example
 	 * ### Ordering Current Resource Fields
 	 * ```js
@@ -284,9 +329,9 @@ export default class Model
 	 * });
 	 * ```
 	 */
-	static orderBy( fieldNameOrObject, mode = "asc" )
+	static orderBy( fieldNameOrObject: string | object, mode: "asc"|"desc" = "asc" ): QueryBuilder
 	{
-		return this.createBuilder().orderBy( ...arguments );
+		return this.createBuilder().orderBy( fieldNameOrObject, mode );
 	}
 
 	/**
@@ -296,8 +341,7 @@ export default class Model
 	 * 
 	 * --------------------------------------------------------
 	 * 
-	 * @param {...array} resources resource names related with current resource
-	 * @return {QueryBuilder}
+	 * @param resources resource names related with current resource
 	 * @example
 	 * ```js
 	 * Post.with( "author", "comments", "likes" );
@@ -305,7 +349,7 @@ export default class Model
 	 * Post.with([ "author", "comments" ]);
 	 * ```
 	 */
-	static with( ...resources )
+	static with( ...resources: string[]): QueryBuilder
 	{
 		return this.createBuilder().with( ...resources );
 	}
@@ -314,10 +358,9 @@ export default class Model
 	 * Creates a QueryBuilder instance, sets the current
 	 * page number and returns the QueryBuilder.
 	 * 
-	 * @param {number} page numeric 1 base page number
-	 * @return {QueryBuilder}
+	 * @param page numeric 1 base page number
 	 */
-	static page( page )
+	static page( page: number ): QueryBuilder
 	{
 		return this.createBuilder().page( page );
 	}
@@ -326,10 +369,9 @@ export default class Model
 	 * Creates a QueryBuilder instance, sets the
 	 * limit and returns the QueryBuilder.
 	 * 
-	 * @param {number} limit limit
-	 * @return {QueryBuilder}
+	 * @param limit limit
 	 */
-	static limit( limit )
+	static limit( limit: number ): QueryBuilder
 	{
 		return this.createBuilder().limit( limit );
 	}
@@ -338,45 +380,31 @@ export default class Model
 	 * Creates a QueryBuilder instance, sets the
 	 * additional params and returns the QueryBuilder.
 	 * 
-	 * @param {object} payload an object that contains the additional params to pass
-	 * @return {QueryBuilder}
+	 * @param payload an object that contains the additional params to pass
 	 */
-	static params( payload )
+	static params( payload: object ): QueryBuilder
 	{
 		return this.createBuilder().params( payload );
 	}
-
-	/**
-	 * A method that receive query builder instance
-	 * and original condition from arguments tunnel.
-	 * 
-	 * @typedef whenHandler
-	 * @type {function}
-	 * @param {QueryBuilder} queryBuilder QueryBuilder instance
-	 * @param {*} condition condition value to passed through the when method
-	 */
 
 	/**
 	 * It runs the given function when any given condition value
 	 * is truthy. It injects QueryBuilder and condition values
 	 * into the function respectively.
 	 * 
-	 * @param {boolean} condition any boolean value
-	 * @param {whenHandler} handler condition handler callback
-	 * @return {QueryBuilder}
+	 * @param condition any boolean value
+	 * @param handler condition handler callback
 	 */
-	static when( condition, handler )
+	static when( condition: boolean, handler: WhenHandler ): QueryBuilder
 	{
-		return this.createBuilder().when( ...arguments );
+		return this.createBuilder().when( condition, handler );
 	}
 
 	/**
 	 * Sets page number and limit null and sends
 	 * a request to retrieve all resources.
-	 * 
-	 * @return {Promise<Collection<Model>>}
 	 */
-	static all()
+	static all(): Promise<Collection<Model>>
 	{
 		return this.createBuilder().all();
 	}
@@ -388,10 +416,8 @@ export default class Model
 	 * When the request receive a successful response, received
 	 * resource will converted a Model or Collection and Promise
 	 * will resolved with it.
-	 * 
-	 * @return {Promise<Model>|Promise<Collection<Model>>}
 	 */
-	static get()
+	static get(): Promise<Model | Collection<Model> | AxiosError>
 	{
 		return this.createBuilder().get();
 	}
@@ -399,10 +425,8 @@ export default class Model
 	/**
 	 * It functions similarly to the `get` method, but it only
 	 * returns the resource as a plain object.
-	 * 
-	 * @return {Promise<{}>}
 	 */
-	static $get()
+	static $get(): Promise<{}>
 	{
 		return this.createBuilder().$get();
 	}
@@ -410,10 +434,8 @@ export default class Model
 	/**
 	 * It functions similarly to the `$get` method, but it
 	 * only returns the response object.
-	 * 
-	 * @return {Promise<AxiosResponse<any,any>>}
 	 */
-	static $$get()
+	static $$get(): Promise<AxiosResponse|AxiosError>
 	{
 		return this.createBuilder().$$get();
 	}
@@ -431,16 +453,18 @@ export default class Model
 	 * Post.put(101, { foo: "bar" });
 	 * ```
 	 * 
-	 * @param {string|number|object} primaryKeyValue a primary key value
-	 * @param {object} payload params to be sent to the resource
-	 * @return {Promise<Model>|Promise<Collection<Model>>}
+	 * @param primaryKeyValue a primary key value
+	 * @param payload params to be sent to the resource
 	 */
-	static put( primaryKeyValue, payload )
+	static put(
+		primaryKeyValue: string | number | object,
+		payload: object
+	): Promise<RestormResponse | AxiosError>
 	{
 		const query = this.createBuilder();
 
 		return query.request(() =>
-			query.client.put( ...arguments )
+			query.client.put( primaryKeyValue, payload )
 		);
 	}
 
@@ -457,27 +481,27 @@ export default class Model
 	 * Post.patch(101, { foo: "bar" });
 	 * ```
 	 * 
-	 * @param {string|number} primaryKeyValue a primary key value
-	 * @param {object} payload params to be sent to the resource
-	 * @return {Promise<Model>|Promise<Collection<Model>>}
+	 * @param primaryKeyValue a primary key value
+	 * @param payload params to be sent to the resource
 	 */
-	static patch( primaryKeyValue, payload )
+	static patch(
+		primaryKeyValue: string | number | object,
+		payload: {}
+	): Promise<RestormResponse | AxiosError>
 	{
 		const query = this.createBuilder();
 
-		return query.request(
-			() => query.client.patch( ...arguments ),
-			() => this.clean()
-		);
+		return query.request({
+			action: () => query.client.patch( payload ),
+			after: ( queryBuilder ) => queryBuilder.modelInstance.clean( payload)
+		});
 	}
 
 	/**
 	 * Sets the current query to get the first element of the first
 	 * page. Performs the query and returns the first model received.
-	 * 
-	 * @return {Promise<Model>}
 	 */
-	static first()
+	static first(): Promise<Model>
 	{
 		return this.createBuilder().first();
 	}
@@ -486,24 +510,21 @@ export default class Model
 	 * Requests the resource with the given primary value located
 	 * at the represented resource endpoint.
 	 * 
-	 * @param {string|number} primary 
-	 * @return {Promise<Model>|Promise<Collection<Model>>}
+	 * @param primary 
 	 */
-	static find( primary )
+	static find( primary: string|number ): Promise<Model>
 	{
 		return this.createBuilder().find( primary );
 	}
 
 	/**
-	 * Returns length aware paginator interface for represented
-	 * model.
+	 * Returns length aware paginator interface for represented .
 	 * 
-	 * @param {number=} startPage start page
-	 * @return {LengthAwarePaginator}
+	 * @param startPage start page
 	 */
-	static paginate( startPage )
+	static paginate<T extends Model = Model>( startPage?: number ): LengthAwarePaginator<T>
 	{
-		return this.createBuilder().paginate( startPage );
+		return this.createBuilder().paginate( startPage ) as LengthAwarePaginator<T>;
 	}
 
 	/**
@@ -527,12 +548,15 @@ export default class Model
 	/**
 	 * Registers a new event listener.
 	 * 
-	 * @param {string} evtName event name
-	 * @param {function} handler event handler
-	 * @param {EventListenerOptions=} options options
-	 * @return {QueryBuilder}
+	 * @param evtName event name
+	 * @param handler event handler
+	 * @param options options
 	 */
-	static on( evtName, handler, { append = true, once = false } = {})
+	static on<K extends keyof EventMap>(
+		evtName: K,
+		handler: EventMap[K],
+		{ append = true, once = false }: EventListenerOptions = {}
+	): QueryBuilder
 	{
 		return this
 			.createBuilder()
@@ -546,14 +570,17 @@ export default class Model
 	 * When each get request is completed, the stored methods are
 	 * executed by taking the field values they are associated with.
 	 * 
-	 * @param {string|object} fieldNameOrFieldsObj field name or fields object
-	 * @param {function} castHandle cast implementer
-	 * @param {array} payload additional arguments to push cast implementer's arguments
-	 * @return {QueryBuilder}
+	 * @param fieldNameOrFieldsObj field name or fields object
+	 * @param castHandle cast implementer
+	 * @param payload additional arguments to push cast implementer's arguments
 	 */
-	static cast( fieldNameOrFieldsObj, castHandle, payload = [])
+	static cast(
+		fieldNameOrFieldsObj: string|CastHandler,
+		castHandle: Function,
+		payload: [] = []
+	): QueryBuilder
 	{
-		return this.createBuilder().cast( ...arguments );
+		return this.createBuilder().cast( fieldNameOrFieldsObj, castHandle, payload );
 	}
 
 	/**
@@ -564,14 +591,20 @@ export default class Model
 	 * their scenarios are applied to obtain the actual resource
 	 * from the response data.
 	 * 
-	 * @static
-	 * @param {object} responseBody a plain object representing a resource
+	 * @param responseBody a plain object representing a resource
 	 * or resource collection
-	 * @return {object}
 	 */
-	static $pluck( responseBody )
+	static $pluck( responseBody: {}): {}
 	{
 		return responseBody;
+	}
+
+	/**
+	 * Alias of {@link $pluck}.
+	 */
+	$pluck( responseBody: {}): {}
+	{
+		return Model.$pluck( responseBody );
 	}
 
 	/**
@@ -582,12 +615,10 @@ export default class Model
 	 * their scenarios are applied to obtain the actual resource
 	 * from the response data.
 	 * 
-	 * @static
-	 * @param {object} responseBody a plain object holds a resource and
-	 * pagination metadata
-	 * @return {object}
+	 * @param page pagination metadata
+	 * @param responseBody a plain object holds a resource and pagination metadata
 	 */
-	static $pluckPaginations( responseBody )
+	static $pluckPaginations( _page: Page, responseBody: {}): {}
 	{
 		return responseBody;
 	}
@@ -595,10 +626,9 @@ export default class Model
 	/**
 	 * Creates and returns a QueryBuilder instance.
 	 * 
-	 * @param {Model=} modelInstance 
-	 * @return {QueryBuilder}
+	 * @param modelInstance 
 	 */
-	static createBuilder( modelInstance )
+	static createBuilder( modelInstance: Model = null ): QueryBuilder
 	{
 		const builder = new QueryBuilder( this, modelInstance );
 		const methods = this.getInheritedMethods();
@@ -610,7 +640,7 @@ export default class Model
 			if( name.startsWith( "on" ))
 			{
 				builder.on(
-					camelToDash( name.slice( 2 )),
+					camelToDash( name.slice( 2 )) as keyof EventMap,
 					method
 				);
 			}
@@ -629,10 +659,8 @@ export default class Model
 	/**
 	 * Returns an object containing the names of all static methods
 	 * on the model and the methods themselves.
-	 * 
-	 * @return {object}
 	 */
-	static getInheritedMethods()
+	static getInheritedMethods(): {}
 	{
 		const staticMethods = {}
 		const ignoredMethods = [ "name", "prototype", "constructor", "length" ];
@@ -664,102 +692,25 @@ export default class Model
 	}
 
 	/**
-	 * Checks if the given instance is an instance of the model.
-	 * 
-	 * @param {any} instance
-	 * @return {boolean}
-	 */
-	static [ Symbol.hasInstance ]( instance )
-	{
-		if( instance?.constructor === undefined )
-		{
-			return false;
-		}
-
-		return this instanceof instance.constructor;
-	}
-
-	/**
-	 * Instantiates the model with the given data.
-	 * 
-	 * @param {object|string} properties original data of the model
-	 * @param {object} casts additional casting map to apply the model
-	 * when data retreived
-	 */
-	constructor( properties = {}, casts = {})
-	{
-		this.init( properties, casts );
-
-		this.query = this.constructor.createBuilder( this );
-
-		return new Proxy( this, {
-			set( instance, key, val )
-			{
-				if( key === "original" )
-				{
-					instance.original = val;
-				}
-				// if the value is same as original then
-				// it doesn't need to be in the modified
-				else if( instance.original[ key ] === val )
-				{
-					// let's check if it exists in modified
-					if( key in instance.modified )
-					{
-						delete instance.modified[ key ];
-						instance.isDirty = Object.keys( instance.modified ).length > 0;
-					}
-				}
-				else
-				{
-					instance.modified[ key ] = val;
-					instance.isDirty = true;
-				}
-		
-				return true;
-			},
-
-			get( instance, key, o )
-			{
-				if( key === Symbol.toStringTag )
-				{
-					return "Model";
-				}
-
-				return instance.original[ key ] || instance[ key ];
-			}
-		});
-	}
-
-	/**
 	 * Initializes model with data and casting map.
 	 * 
-	 * @param {string|object} properties original properties
-	 * @param {object} casts casting map
-	 * @return {Model}
+	 * @param properties original properties
+	 * @param casts casting map
 	 */
-	init( properties, casts )
+	init( properties: object, casts: CastHandler ): Model
 	{
-		if( typeof properties == "string" )
-		{
-			this.original = properties;
-		}
-		else
-		{
-			this.original = { ...this.original, ...properties }
-		}
-
-		this.#applyCasts( casts );
+		this.original = { ...this.original, ...properties }
+		this.applyCasts( casts );
 		
 		return this;
 	}
 
 	/**
 	 * Copies the given model's original properties to the current model.
-	 * @param {Model} model the model to be assimilated
-	 * @return {Model} this model
+	 * 
+	 * @param model the model to be assimilated
 	 */
-	assimilateTo( model )
+	assimilateTo( model: Model ): Model
 	{
 		this.original = model.original;
 		return this;
@@ -769,13 +720,12 @@ export default class Model
 	 * Sends the given payload or the represented model with `POST`
 	 * request to the represented model's resource endpoint.
 	 * 
-	 * @param {object=} payload data object to be sent to the api endpoint
-	 * @return {Promise<Error|Model>}
+	 * @param payload data object to be sent to the api endpoint
 	 * @throws {Error} when the model has a primary key
 	 */
-	async post( payload )
+	async post( payload?: object ): Promise<AxiosError|Model>
 	{
-		if( this.primary || payload?.[ this.constructor.primaryKey ])
+		if( this.primary || payload?.[( this.constructor as typeof Model ).primaryKey ])
 		{
 			throw new Error( "Cannot call post() on a model with a primary key" );
 		}
@@ -786,7 +736,7 @@ export default class Model
 			query.client.post( payload || { ...this.original, ...this.modified })
 		);
 
-		if( result instanceof Error )
+		if( result instanceof AxiosError )
 		{
 			return result;
 		}
@@ -809,9 +759,9 @@ export default class Model
 	 * post.put({ foo: "bar" });
 	 * ```
 	 * 
-	 * @param {object} payload params to be sent to the resource
+	 * @param payload params to be sent to the resource
 	 */
-	put( payload )
+	put( payload: object ): Promise<RestormResponse|AxiosError>
 	{
 		const { query } = this;
 
@@ -841,9 +791,9 @@ export default class Model
 	 * });
 	 * ```
 	 * 
-	 * @param {object} payload params to be sent to the resource
+	 * @param payload params to be sent to the resource
 	 */
-	patch( payload )
+	patch( payload: object ): Promise<RestormResponse|AxiosError>
 	{
 		const { query } = this;
 
@@ -857,10 +807,9 @@ export default class Model
 	/**
 	 * It checks whether the given field name is in the original data.
 	 * 
-	 * @param {string} key name of the field to check
-	 * @return {boolean}
+	 * @param key name of the field to check
 	 */
-	has( key )
+	has( key: string | number | symbol ): boolean
 	{
 		return key in this.original;
 	}
@@ -868,12 +817,15 @@ export default class Model
 	/**
 	 * Registers a new event listener.
 	 * 
-	 * @param {string} evtName event name
-	 * @param {function} handler event handler
+	 * @param evtName event name
+	 * @param handler event handler
 	 * @param {eventListenerOptions} options options
-	 * @return {QueryBuilder}
 	 */
-	on( evtName, handler, { append = true, once = false } = {})
+	on<K extends keyof EventMap>(
+		evtName: K,
+		handler: EventMap[K],
+		{ append = true, once = false }: EventListenerOptions = {}
+	): QueryBuilder
 	{
 		return this.query.on( evtName, handler, { append, once });
 	}
@@ -881,11 +833,10 @@ export default class Model
 	/**
 	 * Removes the specified event handler from the events list.
 	 *
-	 * @param {string} evtName the name of the event
-	 * @param {function} handler the handler function to be removed
-	 * @return {QueryBuilder}
+	 * @param evtName the name of the event
+	 * @param handler the handler function to be removed
 	 */
-	off( evtName, handler )
+	off( evtName: string, handler: Function ): QueryBuilder
 	{
 		return this.query.off( evtName, handler );
 	}
@@ -897,30 +848,33 @@ export default class Model
 	 * When each get request is completed, the stored methods are
 	 * executed by taking the field values they are associated with.
 	 * 
-	 * @param {string|object} fieldNameOrFieldsObj field name or fields object
-	 * @param {function} castHandle cast implementer
-	 * @param {array} payload additional arguments to push cast implementer's arguments
-	 * @return {QueryBuilder}
+	 * @param fieldNameOrFieldsObj field name or fields object
+	 * @param castHandle cast implementer
+	 * @param payload additional arguments to push cast implementer's arguments
 	 */
-	cast( fieldNameOrFieldsObj, castHandle, payload = [])
+	cast(
+		fieldNameOrFieldsObj: string | CastHandler,
+		castHandle: Function,
+		payload: [] = []
+	): QueryBuilder
 	{
-		return this.query.cast( ...arguments );
+		return this.query.cast( fieldNameOrFieldsObj, castHandle, payload );
 	}
 
 	/**
 	 * Runs handlers from the given cast stack on the represented
 	 * resource data.
 	 * 
-	 * @param {object} casts field: handler for casting
+	 * @param casts \{field: handler\} for casting
 	 */
-	#applyCasts( casts )
+	private applyCasts( casts: CastHandler ): void
 	{
 		for( const key in casts )
 		{
-			const cast = casts[ key ];;
-			let handle, payload;
+			const cast = casts[ key ];
+			let handle: Function, payload: [];
 
-			if( typeof( casts[ key ]) == "function" )
+			if( typeof cast == "function" )
 			{
 				handle = cast;
 				payload = [];
@@ -941,10 +895,8 @@ export default class Model
 
 	/**
 	 * Returns the JSON encoded version of the represented model.
-	 * 
-	 * @return {string}
 	 */
-	toString()
+	toJson(): string
 	{
 		return JSON.stringify( this.original );
 	}
@@ -952,9 +904,9 @@ export default class Model
 	/**
 	 * Moves changed field values over original values.
 	 * 
-	 * @param {object} payload
+	 * @param payload an object that contains the changed field values
 	 */
-	clean( payload )
+	clean( payload: object ): void
 	{
 		for( const key in payload )
 		{
@@ -966,3 +918,32 @@ export default class Model
 		this.isDirty = false;
 	}
 }
+
+/**
+ * A method that receive query builder instance
+ * and original condition from arguments tunnel.
+ * 
+ * @param queryBuilder QueryBuilder instance
+ * @param condition condition value to passed through the when method
+ */
+type WhenHandler = ( queryBuilder: QueryBuilder, condition: any ) => void
+
+/**
+ * A map of cast handlers.
+ * 
+ * @example
+ * ```js
+ * {
+ *     date: ( value, originalData ) => new Date( value )
+ * }
+ * // or
+ * {
+ * 	   date:
+ * 	   {
+ *         payload: [ "foo" ],
+ *         handle: ( value, originalData, payload_1: "foo" ) => new Date( value )
+ *     }
+ * }
+ * ```
+ */
+export type CastHandler = Record<string, Function|{handle:Function,payload:[]}>

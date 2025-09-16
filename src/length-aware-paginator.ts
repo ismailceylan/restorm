@@ -1,49 +1,39 @@
-import { Page, Collection, QueryBuilder } from ".";
+import { AxiosResponse } from "axios";
+import { Page, Collection, QueryBuilder, Model } from ".";
 
-/**
- * @typedef {import('axios').AxiosResponse} AxiosResponse
- */
 /**
  * Length aware paginator class. It extends collection class
  * which is extends array.
  */
-export default class LengthAwarePaginator extends Collection
+export default class LengthAwarePaginator<T extends Model = Model> extends Collection<T>
 {
 	/**
 	 * QueryBuilder instance.
-	 * 
-	 * @type {QueryBuilder}
 	 */
-	builder = null;
+	builder: QueryBuilder = null;
 
 	/**
 	 * Response.
-	 * 
-	 * @type {Promise<AxiosResponse>}
 	 */
-	response = null;
+	response: AxiosResponse = null;
 
 	/**
 	 * Pagination metadata interface.
-	 * 
-	 * @type {Page}
 	 */
-	page = new Page;
+	page: Page = new Page;
 
 	/**
 	 * Request state.
-	 * 
-	 * @type {boolean}
 	 */
-	isPending = false;
+	isPending: boolean = false;
 
 	/**
 	 * Instantiate length aware paginator.
 	 * 
-	 * @param {QueryBuilder} builder query builder instance
-	 * @param {number=} startPage start page
+	 * @param builder query builder instance
+	 * @param startPage start page
 	 */
-	constructor( builder, startPage = 1 )
+	constructor( builder: QueryBuilder, startPage?: number )
 	{
 		super();
 
@@ -51,7 +41,7 @@ export default class LengthAwarePaginator extends Collection
 
 		builder
 			.params({ paginate: "length-aware" })
-			.page( this.page.currentPage || startPage );
+			.page( this.page.currentPage || startPage || 1 );
 
 		this.ping();
 	}
@@ -60,10 +50,9 @@ export default class LengthAwarePaginator extends Collection
 	 * Performs a GET request and put retreived data on public
 	 * data property and returns paginator.
 	 * 
-	 * @return {Promise<Collection>}
 	 * @emits QueryBuilder#paginated
 	 */
-	ping()
+	ping(): Promise<Collection<T>>
 	{
 		const once = { once: true }
 
@@ -77,21 +66,22 @@ export default class LengthAwarePaginator extends Collection
 				this.length = 0;
 				this.response = response;
 
-				this.push( ...collection );
-				this.#hydrateMeta( response.data );
+				if( collection instanceof Collection )
+				{
+					this.push( ...( collection as Collection<T>));
+				}
+				
+				this.hydrateMeta( response.data );
 				
 				this.builder.trigger( "paginated", [ this, response, data ]);
 			}, once )
-			.all();
+			.all() as Promise<Collection<T>>;
 	}
 
 	/**
 	 * Increments the current page number and ping again.
-	 * 
-	 * @async
-	 * @return {Promise<LengthAwarePaginator>}
 	 */
-	async next()
+	async next(): Promise<LengthAwarePaginator<T>>
 	{
 		if( this.page.end || this.isPending )
 		{
@@ -105,7 +95,12 @@ export default class LengthAwarePaginator extends Collection
 		return this;
 	}
 
-	#hydrateMeta( responseBody )
+	/**
+	 * Hydrates pagination metadata.
+	 * 
+	 * @param responseBody plain object which is the response body
+	 */
+	private hydrateMeta( responseBody: {})
 	{
 		this.page = new Page;		
 		this.builder.model.$pluckPaginations( this.page, responseBody );
