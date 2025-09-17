@@ -891,10 +891,12 @@ export default class QueryBuilder
 	 * Returns a resource endpoint value for the represented
 	 * model, including the one temporarily assigned by the
 	 * `QueryBuilder.resource` method.
+	 * 
+	 * @param append appended value
 	 */
-	getResource(): string
+	getResource( append?: string | number ): string
 	{
-		return this.resource || this.model.resource;
+		return ( this.resource || this.model.resource ) + ( append? "/" + append : "" );
 	}
 
 	/**
