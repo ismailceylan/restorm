@@ -87,7 +87,8 @@ export default class Client
 
 		return this.http.put( url, payload,
 		{
-			signal: this.abortController.signal
+			signal: this.abortController.signal,
+			params: this.query.compile()
 		});
 	}
 
@@ -104,7 +105,8 @@ export default class Client
 			this.query.getResource(),
 			payload,
 			{
-				signal: this.abortController.signal
+				signal: this.abortController.signal,
+				params: this.query.compile()
 			}
 		);
 	}
@@ -123,7 +125,8 @@ export default class Client
 	{
 		return this.http.patch( url, payload, Object.assign({}, options,
 		{
-			signal: this.abortController.signal
+			signal: this.abortController.signal,
+			params: this.query.compile()
 		}));
 	}
 }
