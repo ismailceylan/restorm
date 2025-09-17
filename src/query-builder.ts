@@ -610,13 +610,17 @@ export default class QueryBuilder
 	 * @param payload params to be sent to the resource
 	 */
 	async patch(
-		primaryKeyValue: string | number | object,
+		primaryKeyValue: string | number,
 		payload: {}
 	): Promise<Model|Collection<Model>|AxiosError|undefined>
 	{
 		const result = await this.request(
 		{
-			action: () => this.client.patch( payload ),
+			action: () => this.client.patch({
+				payload,
+				url: this.getResource( primaryKeyValue || this.modelInstance.primary ),
+			}),
+
 			hydrate: response => this.hydrate( response ),
 			after: () => this.modelInstance.clean( payload )
 		});

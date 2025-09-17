@@ -485,14 +485,18 @@ export default class Model
 	 * @param payload params to be sent to the resource
 	 */
 	static patch(
-		primaryKeyValue: string | number | object,
+		primaryKeyValue: string | number,
 		payload: {}
 	): Promise<RestormResponse | AxiosError>
 	{
 		const query = this.createBuilder();
 
 		return query.request({
-			action: () => query.client.patch( payload ),
+			action: () => query.client.patch({
+				url: query.getResource( primaryKeyValue ),
+				payload
+			}),
+
 			after: ( queryBuilder ) => queryBuilder.modelInstance.clean( payload)
 		});
 	}
@@ -799,7 +803,11 @@ export default class Model
 
 		return query.request(
 		{
-			action: () => query.client.patch( payload || this.modified ),
+			action: () => query.client.patch({
+				url: query.getResource( this.primary ),
+				payload: payload || this.modified
+			}),
+
 			after: () => this.clean( payload || this.modified )
 		});
 	}

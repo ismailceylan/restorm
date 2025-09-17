@@ -113,15 +113,17 @@ export default class Client
 	 * Performs `PATCH` request and returns a promise to fullfil when
 	 * received a succesfull response.
 	 * 
-	 * @param payload field and values for patch resource
+	 * @param options - an object containing the id of the resource to patch and the payload to send
+	 * @return a promise that resolves with the response data
 	 */
-	patch( payload: object ): Promise<AxiosResponse>
+	patch(
+		{ url, payload, options = {}}:
+		{ url: string, payload: object, options?: object }
+	): Promise<AxiosResponse>
 	{
-		const url = this.query.getResource() + "/" + this.query.modelInstance.primary;
-
-		return this.http.patch( url, payload,
+		return this.http.patch( url, payload, Object.assign({}, options,
 		{
 			signal: this.abortController.signal
-		});
+		}));
 	}
 }
